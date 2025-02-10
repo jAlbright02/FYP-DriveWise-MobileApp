@@ -3,6 +3,8 @@ import React, {useState, useEffect} from "react";
 
 interface carData {
   speed: number;
+  rpm: number;
+  engineLoad: number;
 }
 
 export default function liveData() {
@@ -35,18 +37,22 @@ export default function liveData() {
   
   return (
     <View style={styles.container}>
-      <Text>Status: {isConnected ? 'Connected' : 'Disconnected'}</Text>
-    
-      <Text>Data: {data ? (
+      <Text style={styles.headerText}>Status: {isConnected ? 'Connected' : 'Disconnected'}</Text>
+      <Text style={styles.headerText}>Data Retrieved</Text>
+      <View style={styles.linkCont}>{data ? 
+      (
         <>
-          <Text>Speed: {data.speed}</Text>
+          <Text style={styles.dataText}>Speed: {data.speed}</Text>
+          <Text style={styles.dataText}>RPM: {data.rpm}</Text>
+          <Text style={styles.dataText}>Load: {data.engineLoad}</Text>
         </>
       ):
-       (
+      (
         <>
           <Text>No data received yet...</Text>
         </>
-       )}</Text>
+      )}
+      </View>
     </View>
   );
 }
@@ -56,5 +62,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  linkCont: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  headerText: {
+    fontSize: 20
+  },
+
+  dataText: {
+    fontSize: 18
   },
 });
