@@ -1,5 +1,6 @@
 import { Text, View, StyleSheet} from "react-native";
-import React, {useState, useEffect} from "react";
+import {useState, useEffect} from "react";
+import mqtt, {IClientOptions} from 'mqtt';
 
 interface carData {
   speed: number;
@@ -7,30 +8,41 @@ interface carData {
   engineLoad: number;
 }
 
+const options: IClientOptions = {
+  host: 'ed0971cf75874c3782486469c8aeac41.s1.eu.hivemq.cloud:8884',
+  port: 8884,
+  protocol: 'wss',
+  username: 'test_creds',
+  password: 'Test1234'
+}
+
 export default function liveData() {
   const [data, setData] = useState<carData | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080');
 
-    socket.onopen = () => {
+    const socket = mqtt.connect(options);
+
+    socket.on('connect', () => {
       setIsConnected(true);
       console.log('Connected');
-    };
+    });
 
-    socket.onmessage = (event) => {
-      const incData = JSON.parse(event.data);
+    socket.on('message', (topic: string, message: Buffer) => {
+      const incData: carData = JSON.parse(message.toString());
       setData(incData);
-    };
+    });
 
-    socket.onclose = () => {
+    socket.subscribe('speed');
+
+    socket.on('close', () => {
       setIsConnected(false);
       console.log('WebSocket connection closed');
-    };
+    });
 
     return () => {
-      socket.close();
+      socket.end();
     };
 
   }, []);
