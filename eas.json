@@ -1,0 +1,30 @@
+{
+  "cli": {
+    "version": ">= 15.0.1",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "KOTLIN_VERSION": "1.9.25"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "KOTLIN_VERSION": "1.9.25"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

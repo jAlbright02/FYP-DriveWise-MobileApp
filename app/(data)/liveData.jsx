@@ -2,6 +2,11 @@ import { Text, View, StyleSheet } from "react-native";
 import { useState, useEffect } from "react";
 import mqtt from 'mqtt';
 
+//add this back for eas into the package.json
+//remove for local expo go dev work
+//"expo-dev-client": "~5.0.12",
+
+
 const host = 'wss://industrial.api.ubidots.com:8084/mqtt';
 const username = 'BBUS-zGQixkb8LkvxAtRiqYV5alMn1qcit8';
 const topicStr = '/v1.6/devices/drivewise/';
