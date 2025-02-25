@@ -10,7 +10,10 @@ import mqtt from 'mqtt';
 const host = 'wss://industrial.api.ubidots.com:8084/mqtt';
 const username = 'BBUS-zGQixkb8LkvxAtRiqYV5alMn1qcit8';
 const topicStr = '/v1.6/devices/drivewise/';
-const topics = [topicStr + 'speed', topicStr + 'rpm', topicStr + 'engload'];
+const topics = [topicStr + 'speed', topicStr + 'rpm', topicStr + 'engload', topicStr + 'engCoolTemp',
+                topicStr + 'mass_af', topicStr + 'fuel_lvl', topicStr + 'ambtemp', topicStr + 'man_press', topicStr + 'bar_press'];
+
+let carValues = {speed: 0, rpm: 0, engineLoad: 0, engCoolTemp: 0, mass_af: 0, fuel_lvl: 0, ambtemp: 0, man_press: 0, bar_press: 0}
 
 const options = {
   keepalive: 60,
@@ -30,7 +33,7 @@ const options = {
 };
 
 export default function LiveData() {
-  const [data, setData] = useState({speed: 0, rpm: 0, engineLoad: 0});
+  const [data, setData] = useState(carValues);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
@@ -43,7 +46,6 @@ export default function LiveData() {
     });
 
     socket.on('message', (topic, message) => {
-      console.log('Raw message:', message.toString());
       try {
         const mqttData = JSON.parse(message.toString());
         const topicSplit = topic.split('/');
@@ -58,6 +60,24 @@ export default function LiveData() {
             break;
           case 'engload':
             setData((prevData) => ({ ...prevData, engineLoad: mqttData.value }));
+            break;
+          case 'engCoolTemp':
+            setData((prevData) => ({ ...prevData, engCoolTemp: mqttData.value }));
+            break;
+          case 'mass_af':
+            setData((prevData) => ({ ...prevData, mass_af: mqttData.value }));
+            break;
+          case 'fuel_lvl':
+            setData((prevData) => ({ ...prevData, fuel_lvl: mqttData.value }));
+            break;
+          case 'ambtemp':
+            setData((prevData) => ({ ...prevData, ambtemp: mqttData.value }));
+            break;
+          case 'bar_press':
+            setData((prevData) => ({ ...prevData, bar_press: mqttData.value }));
+            break;
+          case 'man_press':
+            setData((prevData) => ({ ...prevData, man_press: mqttData.value }));
             break;
           default:
             console.warn('Unknown variable:', topicName);
@@ -91,6 +111,12 @@ export default function LiveData() {
             <Text style={styles.dataText}>Speed: {data.speed}</Text>
             <Text style={styles.dataText}>RPM: {data.rpm}</Text>
             <Text style={styles.dataText}>Load: {data.engineLoad}</Text>
+            <Text style={styles.dataText}>Engine Coolant Temp: {data.engCoolTemp}</Text>
+            <Text style={styles.dataText}>Mass Air Flow: {data.mass_af}</Text>
+            <Text style={styles.dataText}>Fuel Level: {data.fuel_lvl}</Text>
+            <Text style={styles.dataText}>Ambient Temperature: {data.ambtemp}</Text>
+            <Text style={styles.dataText}>Manifold Pressure: {data.man_press}</Text>
+            <Text style={styles.dataText}>Barometric Pressure: {data.bar_press}</Text>
           </>
         ) : (
           <Text>No data received yet...</Text>
