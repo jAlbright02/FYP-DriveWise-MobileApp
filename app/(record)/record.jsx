@@ -1,9 +1,11 @@
-import { Text, View, StyleSheet} from "react-native";
+import { Text, View, StyleSheet, Button} from "react-native";
 
 export default function record() {
   return (
     <View style={styles.container}>
       <Text>Record</Text>
+      <Button title="Start"/>
+      <Button title="Stop"/>
     </View>
   );
 }
