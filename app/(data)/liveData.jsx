@@ -1,5 +1,6 @@
 import { Text, View, StyleSheet } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { writeCSV } from "../utils/fileHandler.js";
 import mqtt from 'mqtt';
 
 //add this back for eas into the package.json
@@ -8,16 +9,21 @@ import mqtt from 'mqtt';
 
 
 const host = 'wss://industrial.api.ubidots.com:8084/mqtt';
-const username = 'BBUS-zGQixkb8LkvxAtRiqYV5alMn1qcit8';
+const username = 'BBUS-2pKVH91JG2LEz2pPnx1rfGdLATyydA';
 const topicStr = '/v1.6/devices/drivewise/';
 const topics = [topicStr + 'speed', topicStr + 'rpm', topicStr + 'engload', topicStr + 'engCoolTemp',
                 topicStr + 'mass_af', topicStr + 'fuel_lvl', topicStr + 'ambtemp', topicStr + 'man_press', topicStr + 'bar_press'];
+
+const EXPECTED_PARAMS = new Set ([
+  'speed', 'rpm', 'engineLoad', 'engCoolTemp',
+  'mass_af', 'fuel_lvl', 'ambtemp', 'man_press', 'bar_press'
+]);                
 
 let carValues = {speed: 0, rpm: 0, engineLoad: 0, engCoolTemp: 0, mass_af: 0, fuel_lvl: 0, ambtemp: 0, man_press: 0, bar_press: 0}
 
 const options = {
   keepalive: 60,
-  clientId: '67b9e66f39cee13aef369e0b',
+  clientId: '67e17bdde4af5d331b993744',
   protocolId: 'MQTT',
   protocolVersion: 4,
   clean: true,
@@ -35,6 +41,8 @@ const options = {
 export default function LiveData() {
   const [data, setData] = useState(carValues);
   const [isConnected, setIsConnected] = useState(false);
+  const dataRef = useRef({...carValues});
+  const receivedParams = useRef(new Set());
 
   useEffect(() => {
     const socket = mqtt.connect(host, options);
@@ -51,40 +59,40 @@ export default function LiveData() {
         const topicSplit = topic.split('/');
         const topicName = topicSplit[topicSplit.length-1];
 
-        switch (topicName) {
-          case 'speed':
-            setData((prevData) => ({ ...prevData, speed: mqttData.value }));
-            break;
-          case 'rpm':
-            setData((prevData) => ({ ...prevData, rpm: mqttData.value }));
-            break;
-          case 'engload':
-            setData((prevData) => ({ ...prevData, engineLoad: mqttData.value }));
-            break;
-          case 'engCoolTemp':
-            setData((prevData) => ({ ...prevData, engCoolTemp: mqttData.value }));
-            break;
-          case 'mass_af':
-            setData((prevData) => ({ ...prevData, mass_af: mqttData.value }));
-            break;
-          case 'fuel_lvl':
-            setData((prevData) => ({ ...prevData, fuel_lvl: mqttData.value }));
-            break;
-          case 'ambtemp':
-            setData((prevData) => ({ ...prevData, ambtemp: mqttData.value }));
-            break;
-          case 'bar_press':
-            setData((prevData) => ({ ...prevData, bar_press: mqttData.value }));
-            break;
-          case 'man_press':
-            setData((prevData) => ({ ...prevData, man_press: mqttData.value }));
-            break;
-          default:
-            console.warn('Unknown variable:', topicName);
-        }
+        receivedParams.current.add(topicName);
+        setData((prevData) => {
+          // Update the data ref FIRST
+          const newData = {...prevData};
+          switch (topicName) {
+            case 'speed': newData.speed = mqttData.value; break;
+            case 'rpm': newData.rpm = mqttData.value; break;
+            case 'engload': newData.engineLoad = mqttData.value; break;
+            case 'engCoolTemp': newData.engCoolTemp = mqttData.value; break;
+            case 'mass_af': newData.mass_af = mqttData.value; break;
+            case 'fuel_lvl': newData.fuel_lvl = mqttData.value; break;
+            case 'ambtemp': newData.ambtemp = mqttData.value; break;
+            case 'bar_press': newData.bar_press = mqttData.value; break;
+            case 'man_press': newData.man_press = mqttData.value; break;
+            default: console.warn('Unknown variable:', topicName);
+          }
+
+          // Keep ref in sync
+          dataRef.current = newData;
+
+          // Check if we have all expected parameters
+          if (EXPECTED_PARAMS.size === receivedParams.current.size && 
+              [...EXPECTED_PARAMS].every(p => receivedParams.current.has(p))) {
+            writeCSV(dataRef.current);
+            receivedParams.current.clear(); // Reset for next batch
+          }
+
+          return newData;
+        });
+      
       } catch (error) {
         console.error('Error parsing message:', error);
-      }
+      }     
+
     });
 
     socket.on('error', (error) => {
