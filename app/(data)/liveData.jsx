@@ -11,7 +11,7 @@ import mqtt from 'mqtt';
 const host = 'wss://industrial.api.ubidots.com:8084/mqtt';
 const username = 'BBUS-2pKVH91JG2LEz2pPnx1rfGdLATyydA';
 const topicStr = '/v1.6/devices/drivewise/';
-const topics = [topicStr + 'speed', topicStr + 'rpm', topicStr + 'engload', topicStr + 'engCoolTemp',
+const topics = [topicStr + 'speed', topicStr + 'rpm', topicStr + 'engload', topicStr + 'engcooltemp',
                 topicStr + 'mass_af', topicStr + 'fuel_lvl', topicStr + 'ambtemp', topicStr + 'man_press', topicStr + 'bar_press'];
 
 const EXPECTED_PARAMS = new Set ([
@@ -67,7 +67,7 @@ export default function LiveData() {
             case 'speed': newData.speed = mqttData.value; break;
             case 'rpm': newData.rpm = mqttData.value; break;
             case 'engload': newData.engineLoad = mqttData.value; break;
-            case 'engCoolTemp': newData.engCoolTemp = mqttData.value; break;
+            case 'engcooltemp': newData.engCoolTemp = mqttData.value; break;
             case 'mass_af': newData.mass_af = mqttData.value; break;
             case 'fuel_lvl': newData.fuel_lvl = mqttData.value; break;
             case 'ambtemp': newData.ambtemp = mqttData.value; break;
@@ -83,7 +83,7 @@ export default function LiveData() {
           if (EXPECTED_PARAMS.size === receivedParams.current.size && 
               [...EXPECTED_PARAMS].every(p => receivedParams.current.has(p))) {
             writeCSV(dataRef.current);
-            receivedParams.current.clear(); // Reset for next batch
+            receivedParams.current.clear(); 
           }
 
           return newData;
