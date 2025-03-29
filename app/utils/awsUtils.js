@@ -1,3 +1,4 @@
+import 'react-native-get-random-values'; //polyfill for random value generation as aws-sdk requires crypto.getRandomValues()
 import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { awsConfig } from './awsConfig';
 
@@ -45,7 +46,8 @@ export async function getLogNames() {
       console.log(logs);
 
       return logs;
-    } catch {error} {
+    } catch (error) {
       console.error('Error fetching logs:', error);
+      return [];
     }
 }
