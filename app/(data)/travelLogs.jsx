@@ -74,8 +74,14 @@ export default function TravelLogs() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalHeaderText}>{currentFileName}</Text>
             </View>
-            <ScrollView style={styles.scrollViewContent}>
-              <Text style={styles.modalText}>{fileContent}</Text>
+            <ScrollView 
+              style={styles.scrollViewContent}
+              contentContainerStyle={styles.scrollViewContainer}
+              horizontal={false}
+            >
+              <ScrollView horizontal={true}>
+                <Text style={styles.logText}>{fileContent}</Text>
+              </ScrollView>
             </ScrollView>
             <Pressable onPress={() => setModalVisible(false)} style={styles.closeButton}>
               <Text style={styles.closeButtonText}>Close</Text>
@@ -148,11 +154,14 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flex: 1,
+  },
+  scrollViewContainer: {
     padding: 20,
   },
-  modalText: {
-    fontSize: 16,
+  logText: {
+    fontSize: 14,
     color: 'black',
+    fontFamily: 'monospace', // Use monospace font for better log/CSV format alignment
   },
   closeButton: {
     margin: 15,
