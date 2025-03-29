@@ -5,7 +5,7 @@ export default function RootLayout() {
   return (
     <RecordingProvider>
       <Stack>
-        <Stack.Screen name="index" options={{ title: "Home" }} />
+        <Stack.Screen name="index" options={{ title: "DriveWise" }} />
         <Stack.Screen name="(data)" options={{ headerShown: false }} />
         <Stack.Screen name="(record)" options={{ headerShown: false }} />
       </Stack>
