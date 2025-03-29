@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, FlatList, Pressable, Modal, ScrollView } from "react-native";
+import { Text, View, StyleSheet, FlatList, Pressable, Modal, ScrollView, Dimensions } from "react-native";
 import { parseTextFile, getLogNames } from "../utils/awsUtils";
 import React, { useState, useEffect } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome'; // Import the icon library
@@ -7,7 +7,7 @@ export default function TravelLogs() {
   const [fileContent, setFileContent] = useState(null);
   const [logNames, setLogNames] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedContent, setSelectedContent] = useState('');
+  const [currentFileName, setCurrentFileName] = useState('');
 
   useEffect(() => {
     const fetchNames = async () => {
@@ -19,23 +19,24 @@ export default function TravelLogs() {
       }
     };
 
-    const fetchFile = async () => {
-      try {
-        const content = await parseTextFile('hw.txt');
-        setFileContent(content);
-      } catch (err) {
-        console.error('Failed to fetch: ', err);
-        setFileContent('Failed to load file');
-      }
-    };
-
-    fetchFile();
     fetchNames();
   }, []);
 
+  const fetchFile = async (fileName) => {
+    try {
+      setCurrentFileName(fileName);
+      const fileWithExtension = fileName + '.csv'; //Append '.csv' extension to the file name
+      const content = await parseTextFile(fileWithExtension);
+      setFileContent(content);
+    } catch (err) {
+      console.error('Failed to fetch file: ', err);
+      setFileContent('Failed to load file');
+    }
+  };
+
   // Function to view the text content in a modal
   const viewContent = (item) => {
-    setSelectedContent(item);
+    fetchFile(item);
     setModalVisible(true);
   };
 
@@ -47,15 +48,15 @@ export default function TravelLogs() {
         renderItem={({ item }) => (
           <Pressable style={styles.itemContainer}>
             <View style={styles.itemContent}>
-            <Text style={styles.itemText}>{typeof item === 'string' ? item : JSON.stringify(item)}</Text>
-            <View style={styles.iconContainer}>
-              <Pressable onPress={() => viewContent(item)}>
-                <Icon name="eye" size={20} color="#ffffff" />
-              </Pressable>
-              <Pressable style={styles.iconSpacing}>
-                <Icon name="bar-chart" size={20} color="#ffffff" />
-              </Pressable>
-            </View>
+              <Text style={styles.itemText}>{typeof item === 'string' ? item : JSON.stringify(item)}</Text>
+              <View style={styles.iconContainer}>
+                <Pressable onPress={() => viewContent(item)}>
+                  <Icon name="eye" size={20} color="#ffffff" />
+                </Pressable>
+                <Pressable style={styles.iconSpacing}>
+                  <Icon name="bar-chart" size={20} color="#ffffff" />
+                </Pressable>
+              </View>
             </View>
           </Pressable>
         )}
@@ -70,8 +71,11 @@ export default function TravelLogs() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <ScrollView>
-              <Text style={styles.modalText}>{selectedContent}</Text>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderText}>{currentFileName}</Text>
+            </View>
+            <ScrollView style={styles.scrollViewContent}>
+              <Text style={styles.modalText}>{fileContent}</Text>
             </ScrollView>
             <Pressable onPress={() => setModalVisible(false)} style={styles.closeButton}>
               <Text style={styles.closeButtonText}>Close</Text>
@@ -82,6 +86,8 @@ export default function TravelLogs() {
     </View>
   );
 }
+
+const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
@@ -121,9 +127,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    width: '80%',
+    width: width * 0.8,
+    height: height * 0.7, // Fixed height: 70% of screen height
     backgroundColor: '#ffffff',
     borderRadius: 10,
+    padding: 0,
+    overflow: 'hidden', // Prevents content from bleeding outside rounded corners
+  },
+  modalHeader: {
+    backgroundColor: '#A6CAEC',
+    padding: 15,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  modalHeaderText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+  },
+  scrollViewContent: {
+    flex: 1,
     padding: 20,
   },
   modalText: {
@@ -131,7 +155,7 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   closeButton: {
-    marginTop: 20,
+    margin: 15,
     alignItems: 'center',
     padding: 10,
     backgroundColor: '#A6CAEC',
@@ -139,5 +163,6 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     color: 'white',
+    fontWeight: 'bold',
   },
 });
