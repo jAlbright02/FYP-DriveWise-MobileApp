@@ -2,6 +2,15 @@ import { Text, View, StyleSheet } from "react-native";
 import { useState, useEffect } from "react";
 import { writeCSV } from "../utils/fileHandler.js";
 import mqtt from 'mqtt';
+import Speedometer, {
+  Background,
+  Arc,
+  Needle,
+  Progress,
+  Marks,
+  Indicator,
+  DangerPath,
+} from 'react-native-cool-speedometer';
 
 //add this back for eas into the package.json
 //remove for local expo go dev work
@@ -108,20 +117,36 @@ export default function LiveData() {
   return (
     <View style={styles.container}>
       <Text style={styles.headerText}>Status: {isConnected ? 'Connected' : 'Disconnected'}</Text>
-      <Text style={styles.headerText}>Data Retrieved</Text>
+      <View style={styles.spacing} />
       <View style={styles.linkCont}>
         {data ? (
-          <>
-            <Text style={styles.dataText}>Speed: {data.speed}</Text>
-            <Text style={styles.dataText}>RPM: {data.rpm}</Text>
-            <Text style={styles.dataText}>Load: {data.engineLoad}</Text>
-            <Text style={styles.dataText}>Engine Coolant Temp: {data.engCoolTemp}</Text>
-            <Text style={styles.dataText}>Mass Air Flow: {data.mass_af}</Text>
-            <Text style={styles.dataText}>Fuel Level: {data.fuel_lvl}</Text>
-            <Text style={styles.dataText}>Ambient Temperature: {data.ambtemp}</Text>
-            <Text style={styles.dataText}>Manifold Pressure: {data.man_press}</Text>
-            <Text style={styles.dataText}>Barometric Pressure: {data.bar_press}</Text>
-          </>
+        <>
+        <View style={styles.speedoContainer}>
+          <Text style={styles.speedoTitle}>Speed (Km/h)</Text>
+          <Speedometer value={data.speed} fontFamily="squada-one" max={200} height={180} width={180}>
+            <Background />
+            <Arc />
+            <Needle />
+            <Progress />
+            <Marks fontSize={15} />
+            <Indicator fontSize={20} />
+          </Speedometer>
+        </View>
+        <View style={styles.spacing} />
+        <View style={styles.speedoContainer}>
+          <Text style={styles.speedoTitle}>RPM</Text>
+          <Speedometer value={data.rpm} fontFamily="squada-one" max={9000} rotation={-90} height={180} width={180}>
+            <Background />
+            <Arc />
+            <Needle />
+            <DangerPath />
+            <Progress arcWidth={8} />
+            <Marks step={1000} fontSize={15} />
+            <Indicator fontSize={20}/>
+          </Speedometer>
+        </View>
+        </>
+        
         ) : (
           <Text>No data received yet...</Text>
         )}
@@ -133,18 +158,33 @@ export default function LiveData() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
+    paddingTop: 10,
+    backgroundColor: '#DCEAF7', //Colour used in my poster s
   },
   linkCont: {
-    flexDirection: 'column',
+    flexDirection: 'row', // Change to row to align speedometers side by side
     justifyContent: 'center',
     alignItems: 'center',
   },
+  spacing: {
+    height: 10,
+    width: 20, // Add space between the speedometers
+  },
+  speedoContainer: {
+    alignItems: 'center',
+    marginBottom: 20, // Add space between the speedometers
+  },
+  speedoTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5, // Space between title and speedometer
+  },
   headerText: {
-    fontSize: 20
+    fontSize: 20,
   },
   dataText: {
-    fontSize: 18
+    fontSize: 18,
   },
 });

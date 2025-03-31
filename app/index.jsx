@@ -2,12 +2,14 @@ import { Link } from "expo-router";
 import { Text, View, Image, StyleSheet, TouchableOpacity, Linking} from "react-native";
 
 export default function Index() {
+  //https://commons.wikimedia.org/wiki/ for images
+
   return (
     <View style={styles.container}>
       
       <Link href="/(data)/liveData">
         <View style={styles.linkCont}>
-          <Image style={styles.images} source={require('../assets/images/speedo.jpg')}/>
+          <Image style={styles.images} source={require('../assets/images/speedo.png')}/>
           <Text style={styles.textStyle}>Live Data</Text>
         </View>
       </Link>
@@ -40,6 +42,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#DCEAF7', //Colour used in my poster 
   },
 
   linkCont: {
