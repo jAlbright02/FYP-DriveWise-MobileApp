@@ -1,7 +1,7 @@
 import { Text, View, StyleSheet, FlatList, Pressable, Modal, ScrollView, Dimensions } from "react-native";
 import { parseTextFile, getLogNames } from "../utils/awsUtils";
 import React, { useState, useEffect } from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome'; // Import the icon library
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 export default function TravelLogs() {
   const [fileContent, setFileContent] = useState(null);
@@ -34,7 +34,7 @@ export default function TravelLogs() {
     }
   };
 
-  // Function to view the text content in a modal
+  // Function to view the text in a modal
   const viewContent = (item) => {
     fetchFile(item);
     setModalVisible(true);
@@ -133,12 +133,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    width: width * 0.8,
-    height: height * 0.7, // Fixed height: 70% of screen height
+    width: width * 0.8, //80% of screen width
+    height: height * 0.7, //70% of screen height
     backgroundColor: '#ffffff',
     borderRadius: 10,
     padding: 0,
-    overflow: 'hidden', // Prevents content from bleeding outside rounded corners
+    overflow: 'hidden', //Prevents content from bleeding outside rounded corners
   },
   modalHeader: {
     backgroundColor: '#A6CAEC',
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   logText: {
     fontSize: 14,
     color: 'black',
-    fontFamily: 'monospace', // Use monospace font for better log/CSV format alignment
+    fontFamily: 'monospace', //Use monospace font for better log/CSV viewing
   },
   closeButton: {
     margin: 15,
