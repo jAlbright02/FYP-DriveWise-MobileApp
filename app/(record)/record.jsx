@@ -17,11 +17,14 @@ export default function Record() {
 
   return (
     <View style={styles.container}>
-      <Text>Record</Text>
       {!isRecording ? (
-        <Button title="Start" onPress={onStart} />
+        <View style={styles.buttonContainer}>
+          <Button title="Start" onPress={onStart} color={'#6BBF59'} />
+        </View>
       ) : (
-        <Button title="Stop" onPress={onStop} />
+        <View style={styles.buttonContainer}>
+          <Button title="Stop" onPress={onStop} color={'#E07A5F'} />
+        </View>
       )}
     </View>
   );
@@ -32,5 +35,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: '#DCEAF7' //Colour used in my poster 
+  },
+
+  buttonContainer: {
+    width: 200,
+    height: 50
   },
 });

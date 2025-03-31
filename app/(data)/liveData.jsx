@@ -1,5 +1,5 @@
 import { Text, View, StyleSheet } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { writeCSV } from "../utils/fileHandler.js";
 import mqtt from 'mqtt';
 import Speedometer, {
@@ -46,73 +46,124 @@ export default function LiveData() {
   const [data, setData] = useState(carValues);
   const [isConnected, setIsConnected] = useState(false);
   const [isFirstIteration, setIsFirstIteration] = useState(true);
+  const [client, setClient] = useState(null);
+
+  let logData = useRef({});
+  let cnt = useRef({s:0, r:0, eL: 0, eT:0, maf:0, flvl:0, amtem:0, bar:0, man:0});
 
   useEffect(() => {
-    const socket = mqtt.connect(host, options);
+    let mqttClient = null;
+    if (!client) {
 
-    socket.on('connect', () => {
-      setIsConnected(true);
-      console.log('Connected');
-      socket.subscribe(topics);
-    });
+      mqttClient = mqtt.connect(host, options);
+      setClient(mqttClient);
 
-    socket.on('message', (topic, message) => {
-      let logData = {};
-      let cnt = {s:0, r:0, eL: 0, eT:0, maf:0, flvl:0, amtem:0, bar:0, man:0};
+      mqttClient.on('connect', () => {
+        setIsConnected(true);
+        console.log('Connected');
+        mqttClient.subscribe(topics);
+      });
 
-      try {
-        const mqttData = JSON.parse(message.toString());
-        const topicSplit = topic.split('/');
-        const topicName = topicSplit[topicSplit.length-1];
+      mqttClient.on('message', (topic, message) => {
+        try {
+          const mqttData = JSON.parse(message.toString());
+          const topicSplit = topic.split('/');
+          const topicName = topicSplit[topicSplit.length-1];
 
-        switch (topicName) {
-          case 'speed': setData((prevData) => ({ ...prevData, speed: mqttData.value })); logData.speed = mqttData.value; ++cnt.s; break;
-          case 'rpm': setData((prevData) => ({ ...prevData, rpm: mqttData.value })); logData.rpm = mqttData.value; ++cnt.r; break;
-          case 'engload': setData((prevData) => ({ ...prevData, engineLoad: mqttData.value })); logData.engineLoad = mqttData.value; ++cnt.eL; break;
-          case 'engcooltemp': setData((prevData) => ({ ...prevData, engCoolTemp: mqttData.value })); logData.engCoolTemp = mqttData.value; ++cnt.eT; break;
-          case 'mass_af': setData((prevData) => ({ ...prevData, mass_af: mqttData.value })); logData.mass_af = mqttData.value; ++cnt.maf; break;
-          case 'fuel_lvl': setData((prevData) => ({ ...prevData, fuel_lvl: mqttData.value })); logData.fuel_lvl = mqttData.value; ++cnt.flvl; break;
-          case 'ambtemp': setData((prevData) => ({ ...prevData, ambtemp: mqttData.value })); logData.ambtemp = mqttData.value; ++cnt.amtem; break;
-          case 'bar_press': setData((prevData) => ({ ...prevData, bar_press: mqttData.value })); logData.bar_press = mqttData.value; ++cnt.bar; break;
-          case 'man_press': setData((prevData) => ({ ...prevData, man_press: mqttData.value })); logData.man_press = mqttData.value; ++cnt.man; break;
-          default: console.warn('Unknown variable:', topicName);
-        }
-
-        if (isFirstIteration) {
-          if (Object.values(cnt).every(value => value > 0)) {
-            console.log("All data received");
-            setIsFirstIteration(false);
+          switch (topicName) {
+            case 'speed': 
+              setData((prevData) => ({ ...prevData, speed: mqttData.value }));
+              logData.current.speed = mqttData.value;
+              ++cnt.current.s;
+              break;
+            case 'rpm': 
+              setData((prevData) => ({ ...prevData, rpm: mqttData.value }));
+              logData.current.rpm = mqttData.value;
+              ++cnt.current.r; 
+              break;
+            case 'engload':
+              setData((prevData) => ({ ...prevData, engineLoad: mqttData.value }));
+              logData.current.engineLoad = mqttData.value;
+              ++cnt.current.eL;
+              break;
+            case 'engcooltemp':
+              setData((prevData) => ({ ...prevData, engCoolTemp: mqttData.value }));
+              logData.current.engCoolTemp = mqttData.value;
+              ++cnt.current.eT;
+              break;
+            case 'mass_af':
+              setData((prevData) => ({ ...prevData, mass_af: mqttData.value }));
+              logData.current.mass_af = mqttData.value;
+              ++cnt.current.maf;
+              break;
+            case 'fuel_lvl':
+              setData((prevData) => ({ ...prevData, fuel_lvl: mqttData.value }));
+              logData.current.fuel_lvl = mqttData.value;
+              ++cnt.current.flvl;
+              break;
+            case 'ambtemp':
+              setData((prevData) => ({ ...prevData, ambtemp: mqttData.value }));
+              logData.current.ambtemp = mqttData.value;
+              ++cnt.current.amtem;
+              break;
+            case 'bar_press':
+              setData((prevData) => ({ ...prevData, bar_press: mqttData.value }));
+              logData.current.bar_press = mqttData.value;
+              ++cnt.current.bar;
+              break;
+            case 'man_press':
+              setData((prevData) => ({ ...prevData, man_press: mqttData.value }));
+              logData.current.man_press = mqttData.value;
+              ++cnt.current.man;
+              break;
+            default: console.warn('Unknown variable:', topicName);
           }
-        }
-      
-        if (!isFirstIteration) {
-          if (cnt.s > 0 && cnt.r > 0 && cnt.eL > 0) {
-            console.log("Data ready for CSV:", logData);
-            cnt.s = 0;
-            cnt.r = 0;
-            cnt.eL = 0;
+
+          if (isFirstIteration) {
+            if (Object.values(cnt).every(value => value > 0)) {
+              console.log("All data received");
+              setIsFirstIteration(false);
+            }
+          } else {
+            if (cnt.s > 0 && cnt.r > 0 && cnt.eL > 0) {
+              console.log("Data ready for CSV:", logData);
+              cnt.current.s = 0;
+              cnt.current.r = 0;
+              cnt.current.eL = 0;
+            }
           }
-        }
+          console.log(cnt)
 
-      } catch (error) {
-        console.error('Error parsing message:', error);
-      }     
+        } catch (error) {
+          console.error('Error parsing message:', error);
+        }     
 
-    });
+      });
 
-    socket.on('error', (error) => {
-      console.error('Connection error:', error);
-    });
+      mqttClient.on('error', (error) => {
+        console.error('Connection error:', error);
+      });
 
-    socket.on('close', () => {
-      setIsConnected(false);
-      console.log('WebSocket connection closed');
-    });
+      mqttClient.on('close', () => {
+        setIsConnected(false);
+        console.log('WebSocket connection closed');
+      });
+  }
 
     return () => {
-      socket.end();
+      if (mqttClient) {
+        console.log('Cleaning up MQTT connection...');
+        mqttClient.unsubscribe(topics, () => {
+          console.log('Unsubscribed from topics');
+          mqttClient.end(true, () => {
+            console.log('MQTT connection closed');
+            setClient(null);
+            setIsConnected(false);
+          });
+        });
+      }
     };
-  }, [isFirstIteration]);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -177,11 +228,13 @@ const styles = StyleSheet.create({
     marginBottom: 20, // Add space between the speedometers
   },
   speedoTitle: {
+    fontFamily: "Roboto",
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5, // Space between title and speedometer
   },
   headerText: {
+    fontFamily: "Roboto",
     fontSize: 20,
   },
   dataText: {

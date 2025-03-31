@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   itemText: {
+    fontFamily: "Roboto",
     fontSize: 18,
     color: 'white', //White text for contrast
   },
@@ -151,6 +152,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
+    fontFamily: "Roboto"
   },
   scrollViewContent: {
     flex: 1,
@@ -171,6 +173,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   closeButtonText: {
+    fontFamily: "Roboto",
+    fontSize: 15,
     color: 'white',
     fontWeight: 'bold',
   },

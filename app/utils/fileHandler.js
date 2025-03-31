@@ -2,7 +2,7 @@ import * as FileSystem from 'expo-file-system';
 import { DateTime } from 'luxon';
 
 let recording = false;
-const todayDate = DateTime.now().toFormat('dd-MM-yyyy-HH-mm-ss');
+const todayDate = DateTime.now().toFormat('dd-MM-yyyy-HH-mm');
 let fileUri = FileSystem.documentDirectory + `carData_${todayDate}.csv`;
 
 // Create header if file doesn't exist
