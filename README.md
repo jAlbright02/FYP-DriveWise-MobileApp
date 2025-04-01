@@ -1,7 +1,7 @@
 # TODO
 
-# ISSUE
-## Not stopping properly, seems to only log somewhat after leaving screen and re-entering
+## Potentially Fixed
+### Not stopping properly, seems to only log somewhat after leaving screen and re-entering
 
 ## Write to csv
  - on start/stop add timestamp to file (should every write be a timestamp?)
