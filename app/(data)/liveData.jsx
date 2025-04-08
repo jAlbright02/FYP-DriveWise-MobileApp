@@ -27,10 +27,10 @@ let carValues = {speed: 0, rpm: 0, engineLoad: 0, engCoolTemp: 0, mass_af: 0, fu
 
 const options = {
   keepalive: 60,
-  clientId: '67e17bdde4af5d331b993744',
+  clientId: '67e17bdde4af5d331b994444',
   protocolId: 'MQTT',
   protocolVersion: 4,
-  clean: false,
+  clean: true,
   reconnectPeriod: 1000,
   connectTimeout: 30 * 1000,
   username: username,
@@ -45,11 +45,11 @@ const options = {
 export default function LiveData() {
   const [data, setData] = useState(carValues);
   const [isConnected, setIsConnected] = useState(false);
-  const [isFirstIteration, setIsFirstIteration] = useState(true);
   const [client, setClient] = useState(null);
 
   let logData = useRef({});
   let cnt = useRef({s:0, r:0, eL: 0, eT:0, maf:0, flvl:0, amtem:0, bar:0, man:0});
+  const isFirstIteration = useRef(true);
 
   useEffect(() => {
     let mqttClient = null;
@@ -119,20 +119,20 @@ export default function LiveData() {
             default: console.warn('Unknown variable:', topicName);
           }
 
-          if (isFirstIteration) {
-            if (Object.values(cnt).every(value => value > 0)) {
+          if (isFirstIteration.current) {
+            if (Object.values(cnt.current).every(value => value > 0)) {
               console.log("All data received");
-              setIsFirstIteration(false);
+              isFirstIteration.current = false;
             }
           } else {
-            if (cnt.s > 0 && cnt.r > 0 && cnt.eL > 0) {
+            if (cnt.current.s > 0 && cnt.current.r > 0 && cnt.current.eL > 0) {
               console.log("Data ready for CSV:", logData);
+              writeCSV(data);
               cnt.current.s = 0;
               cnt.current.r = 0;
               cnt.current.eL = 0;
             }
           }
-          console.log(cnt)
 
         } catch (error) {
           console.error('Error parsing message:', error);
