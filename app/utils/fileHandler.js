@@ -1,12 +1,14 @@
 import * as FileSystem from 'expo-file-system';
 import { DateTime } from 'luxon';
+import {uploadCsvToS3} from './awsUtils';
 
 let recording = false;
 const todayDate = DateTime.now().toFormat('dd-MM-yyyy-HH-mm');
-let fileUri = FileSystem.documentDirectory + `carData_${todayDate}.csv`;
+let fileName = `carData_${todayDate}`
+let fileUri = FileSystem.documentDirectory + `${fileName}.csv`;
 
 // Create header if file doesn't exist
-const initializeCSV = async () => {
+const initialiseCSV = async () => {
   const fileInfo = await FileSystem.getInfoAsync(fileUri);
   console.log(fileUri);
   if (!fileInfo.exists) {
@@ -30,19 +32,16 @@ export const writeCSV = async (data) => {
   }
 };
 
-// Start recording
 export const startRecording = async () => {
   recording = true;
-  await initializeCSV(); // Ensure the CSV file is initialized
+  await initialiseCSV();
 };
 
-// Stop recording
 export const stopRecording = async () => {
   recording = false;
 
   try {
-    const fileContent = await FileSystem.readAsStringAsync(fileUri);
-    console.log("CSV File Content:\n", fileContent);
+    uploadCsvToS3(fileUri, fileName);
   } catch (error) {
     console.error("Error reading the file:", error);
   }

@@ -127,7 +127,7 @@ export default function LiveData() {
           } else {
             if (cnt.current.s > 0 && cnt.current.r > 0 && cnt.current.eL > 0) {
               console.log("Data ready for CSV:", logData);
-              writeCSV(data);
+              writeCSV(logData.current);
               cnt.current.s = 0;
               cnt.current.r = 0;
               cnt.current.eL = 0;

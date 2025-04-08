@@ -1,6 +1,7 @@
 import 'react-native-get-random-values'; //polyfill for random value generation as aws-sdk requires crypto.getRandomValues()
-import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
+import { S3Client, GetObjectCommand, ListObjectsV2Command, PutObjectCommand } from '@aws-sdk/client-s3';
 import { awsConfig } from './awsConfig';
+import * as FileSystem from 'expo-file-system';
 
 const s3Client = new S3Client({
     region:awsConfig.region,
@@ -50,4 +51,26 @@ export async function getLogNames() {
       console.error('Error fetching logs:', error);
       return [];
     }
+}
+
+export async function uploadCsvToS3(fileUri, fileName) {
+  try {
+    const fileContent = await FileSystem.readAsStringAsync(fileUri, {
+      encoding: FileSystem.EncodingType.UTF8,
+    });
+    
+    const command = new PutObjectCommand({
+      Bucket: awsConfig.bucket,
+      Key: `logs/${fileName}.csv`,
+      Body: fileContent,
+      ContentType: 'text/csv',
+    });
+
+    const result = await s3Client.send(command);
+    console.log('Successfully uploaded CSV to S3:', fileName);
+    return result;
+  } catch (error) {
+    console.error('Error uploading CSV to S3:', error);
+    throw error;
+  }
 }
