@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet, Dimensions } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import { writeCSV } from "../utils/fileHandler.js";
 import mqtt from 'mqtt';
@@ -11,6 +11,8 @@ import Speedometer, {
   Indicator,
   DangerPath,
 } from 'react-native-cool-speedometer';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { PanGestureHandler, GestureHandlerRootView } from 'react-native-gesture-handler';
 
 //add this back for eas into the package.json
 //remove for local expo go dev work
@@ -46,6 +48,43 @@ export default function LiveData() {
   const [data, setData] = useState(carValues);
   const [isConnected, setIsConnected] = useState(false);
   const [client, setClient] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+
+  //functions for swiping between pages
+  const translateX = useSharedValue(-currentPage * screenWidth);
+  const screenWidth = Dimensions.get('window').width;
+
+  const onGestureEvent = (event) => {
+    const { translationX } = event.nativeEvent;
+
+    let newPosition = translationX;
+
+    if ((currentPage === 0 && translationX > 0) || (currentPage === 1 && translationX < 0)) {
+      newPosition = translationX/3;
+    }
+
+    translateX.value = -currentPage * screenWidth + newPosition;
+  };
+
+  const onGestureEnd = (event) => {
+    const { translationX } = event.nativeEvent;
+    
+    if (currentPage === 0 && translationX < -50) {
+      setCurrentPage(1);
+      translateX.value = withSpring(-screenWidth);
+    } else if (currentPage === 1 && translationX > 50) {
+      setCurrentPage(0);
+      translateX.value = withSpring(0);
+    } else {
+      translateX.value = withSpring(-currentPage * screenWidth);
+    }
+  };
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{translateX: translateX.value}]
+    };
+  });
 
   //want useRef for these values as we want to access them within the component, if useState is used we won't see an updated
   //value until the component mounts again (no use to us then)
@@ -174,45 +213,91 @@ export default function LiveData() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.headerText}>Status: {isConnected ? 'Connected' : 'Disconnected'}</Text>
-      <View style={styles.spacing} />
-      <View style={styles.linkCont}>
-        {data ? (
-        <>
-        <View style={styles.speedoContainer}>
-          <Text style={styles.speedoTitle}>Speed (Km/h)</Text>
-          <Speedometer value={data.speed} fontFamily="squada-one" max={200} height={180} width={180}>
-            <Background />
-            <Arc />
-            <Needle />
-            <Progress />
-            <Marks fontSize={15} />
-            <Indicator fontSize={20} />
-          </Speedometer>
-        </View>
-
+    <GestureHandlerRootView style={{flex: 1}}>
+      <View style={styles.container}>
+        <Text style={styles.headerText}>Status: {isConnected ? 'Connected' : 'Disconnected'}</Text>
         <View style={styles.spacing} />
 
-        <View style={styles.speedoContainer}>
-          <Text style={styles.speedoTitle}>RPM</Text>
-          <Speedometer value={data.rpm} fontFamily="squada-one" max={9000} rotation={-90} height={180} width={180}>
-            <Background />
-            <Arc />
-            <Needle />
-            <DangerPath />
-            <Progress arcWidth={8} />
-            <Marks step={1000} fontSize={15} />
-            <Indicator fontSize={20}/>
-          </Speedometer>
+        <View style={styles.paginationIndicator}>
+          <View style={[styles.dot, currentPage === 0 ? styles.activeDot : null]} />
+          <View style={[styles.dot, currentPage === 1 ? styles.activeDot : null]} />
         </View>
-        </>
-        
-        ) : (
-          <Text>No data received yet...</Text>
-        )}
+
+        <PanGestureHandler onGestureEvent={onGestureEvent} onEnded={onGestureEnd}>
+          <Animated.View style={[styles.pagesContainer, animatedStyle]}>
+            {/* First Page */}
+            <View style={styles.page}>
+              <View style={styles.linkCont}>
+                {data ? (
+                <>
+                <View style={styles.speedoContainer}>
+                  <Text style={styles.speedoTitle}>Speed (Km/h)</Text>
+                  <Speedometer value={data.speed} fontFamily="squada-one" max={200} height={180} width={180}>
+                    <Background />
+                    <Arc />
+                    <Needle />
+                    <Progress />
+                    <Marks fontSize={15} />
+                    <Indicator fontSize={20} />
+                  </Speedometer>
+                </View>
+
+                <View style={styles.spacing} />
+
+                <View style={styles.speedoContainer}>
+                  <Text style={styles.speedoTitle}>RPM</Text>
+                  <Speedometer value={data.rpm} fontFamily="squada-one" max={9000} rotation={-90} height={180} width={180}>
+                    <Background />
+                    <Arc />
+                    <Needle />
+                    <DangerPath />
+                    <Progress arcWidth={8} />
+                    <Marks step={1000} fontSize={15} />
+                    <Indicator fontSize={20}/>
+                  </Speedometer>
+                </View>
+                </>
+                ) : (
+                  <Text>No data received yet...</Text>
+                )}
+              </View>
+            </View>
+
+            {/*Second Page*/}
+            <View style={styles.page}>
+              <Text style={styles.pageTitle}>Additional Data</Text>
+              
+              <View style={styles.dataGrid}>
+                <View style={styles.dataBox}>
+                  <Text style={styles.dataTitle}>Mass Air Flow</Text>
+                  <Text style={styles.dataValue}>{data.mass_af}</Text>
+                </View>
+                
+                <View style={styles.dataBox}>
+                  <Text style={styles.dataTitle}>Fuel Level</Text>
+                  <Text style={styles.dataValue}>{data.fuel_lvl}%</Text>
+                </View>
+                
+                <View style={styles.dataBox}>
+                  <Text style={styles.dataTitle}>Ambient Temp</Text>
+                  <Text style={styles.dataValue}>{data.ambtemp}°C</Text>
+                </View>
+                
+                <View style={styles.dataBox}>
+                  <Text style={styles.dataTitle}>Barometric Pressure</Text>
+                  <Text style={styles.dataValue}>{data.bar_press} kPa</Text>
+                </View>
+                
+                <View style={styles.dataBox}>
+                  <Text style={styles.dataTitle}>Manifold Pressure</Text>
+                  <Text style={styles.dataValue}>{data.man_press} kPa</Text>
+                </View>
+              </View>
+            </View>
+          </Animated.View>
+        </PanGestureHandler>
       </View>
-    </View>
+    </GestureHandlerRootView>
   );
 }
 
@@ -222,16 +307,47 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingTop: 10,
-    backgroundColor: '#DCEAF7', //Colour used in my poster
+    backgroundColor: '#DCEAF7',
+    overflow: 'hidden',
+  },
+  pagesContainer: {
+    flexDirection: 'row',
+    width: Dimensions.get('window').width * 2,
+  },
+  page: {
+    width: Dimensions.get('window').width,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+  },
+  pageTitle: {
+    fontFamily: "Roboto",
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  paginationIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ccc',
+    marginHorizontal: 4,
+  },
+  activeDot: {
+    backgroundColor: '#007AFF',
   },
   linkCont: {
-    flexDirection: 'row', //Change to row to align speedometers side by side
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
   spacing: {
     height: 10,
-    width: 20, //Add space between the speedometers
+    width: 20,
   },
   speedoContainer: {
     alignItems: 'center',
@@ -246,8 +362,41 @@ const styles = StyleSheet.create({
   headerText: {
     fontFamily: "Roboto",
     fontSize: 20,
+    marginBottom: 10,
   },
-  dataText: {
-    fontSize: 18,
+  dataRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginTop: 10,
+  },
+  dataGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  dataBox: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 15,
+    margin: 10,
+    width: '45%',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  dataTitle: {
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 5,
+  },
+  dataValue: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
   },
 });
