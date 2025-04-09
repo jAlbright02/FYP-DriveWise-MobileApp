@@ -62,8 +62,7 @@ export default function LiveData() {
   const onGestureEnd = (event) => {
     const { translationX, velocityX } = event.nativeEvent;
     
-    // Calculate if swipe should change page based on distance and velocity
-    const swipeThreshold = screenWidth * 0.3; // 30% of screen width
+    const swipeThreshold = screenWidth * 0.3;
     const swipeVelocityThreshold = 500;
     
     const shouldSwipeLeft = 
@@ -81,7 +80,6 @@ export default function LiveData() {
       setCurrentPage(0);
       translateX.value = withSpring(0);
     } else {
-      // Return to current position
       translateX.value = withSpring(-currentPage * screenWidth);
     }
   };
@@ -89,7 +87,7 @@ export default function LiveData() {
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ translateX: translateX.value }],
-      width: screenWidth * 2, // Total width for both pages
+      width: screenWidth * 2,
     };
   });
 
@@ -234,39 +232,80 @@ export default function LiveData() {
             {/* First Page */}
             <View style={styles.page}>
               <View style={styles.linkCont}>
-                {data ? (
-                <>
-                {/* Speed speedo */}
-                <View style={styles.speedoContainer}>
-                  <Text style={styles.speedoTitle}>Speed (Km/h)</Text>
-                  <Speedometer value={data.speed} fontFamily="squada-one" max={200} height={180} width={180}>
-                    <Background />
-                    <Arc />
-                    <Needle />
-                    <Progress />
-                    <Marks fontSize={15} />
-                    <Indicator fontSize={20} />
-                  </Speedometer>
-                </View>
+                  {/* Speed speedo */}
+                  <View style={styles.speedoContainer}>
+                    <Text style={styles.speedoTitle}>Speed (Km/h)</Text>
+                    <Speedometer value={data.speed} fontFamily="squada-one" max={200} height={180} width={180}>
+                      <Background />
+                      <Arc />
+                      <Needle />
+                      <Progress />
+                      <Marks fontSize={15} />
+                      <Indicator fontSize={20} />
+                    </Speedometer>
+                  </View>
 
-                {/* RPM speedo */}
-                <View style={styles.speedoContainer}>
-                  <Text style={styles.speedoTitle}>RPM</Text>
-                  <Speedometer value={data.rpm} fontFamily="squada-one" max={9000} rotation={-90} height={180} width={180}>
-                    <Background />
-                    <Arc />
-                    <Needle />
-                    <DangerPath />
-                    <Progress arcWidth={8} />
-                    <Marks step={1000} fontSize={15} />
-                    <Indicator fontSize={20}/>
-                  </Speedometer>
-                </View>
-                </>
-                ) : (
-                  <Text>No data received yet...</Text>
-                )}
+                  {/* RPM speedo */}
+                  <View style={styles.speedoContainer}>
+                    <Text style={styles.speedoTitle}>RPM</Text>
+                    <Speedometer value={data.rpm} fontFamily="squada-one" max={9000} rotation={-90} height={180} width={180}>
+                      <Background />
+                      <Arc />
+                      <Needle />
+                      <DangerPath />
+                      <Progress arcWidth={8} />
+                      <Marks step={1000} fontSize={15} />
+                      <Indicator fontSize={20}/>
+                    </Speedometer>
+                  </View>
               </View>
+
+              <View style={styles.linkCont}>
+                  {/* Engine Load speedo */}
+                  <View style={styles.speedoContainer}>
+                    <Text style={styles.speedoTitle}>Engine Load (%)</Text>
+                    <Speedometer value={data.engineLoad} fontFamily="squada-one" max={100} height={180} width={180}>
+                      <Background />
+                      <Arc />
+                      <Needle />
+                      <Progress />
+                      <Marks fontSize={15} />
+                      <Indicator fontSize={20} />
+                    </Speedometer>
+                  </View>
+
+                  {/* Fuel Gauge speedo */}
+                  <View style={styles.speedoContainer}>
+                    <Text style={styles.speedoTitle}>Fuel Level</Text>
+                    <Speedometer value={data.fuel_lvl} fontFamily="squada-one" max={100} rotation={-120} angle={240} height={180} width={180}>
+                      <Background />
+                      <Arc />
+                      <Needle />
+                      <DangerPath offset={170} angle={60}/>
+                      <Progress arcWidth={8} />
+                      <Marks step={5} fontSize={15} />
+                      <Indicator fontSize={20}/>
+                    </Speedometer>
+                  </View>
+              </View>
+
+              <View style={styles.linkCont}>
+
+                  {/* Eng Temp speedo */}
+                  <View style={styles.speedoContainer}>
+                    <Text style={styles.speedoTitle}>Engine Temp (°C)</Text>
+                    <Speedometer value={data.engCoolTemp} fontFamily="squada-one" max={120} height={180} width={180}>
+                      <Background />
+                      <Arc />
+                      <Needle />
+                      <Progress />
+                      <DangerPath angle={30}/>
+                      <Marks fontSize={15} step={30}/>
+                      <Indicator fontSize={20} />
+                    </Speedometer>
+                  </View>
+              </View>
+
             </View>
 
             {/*Second Page*/}
@@ -324,7 +363,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   linkCont: {
-    flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'flex-start',
