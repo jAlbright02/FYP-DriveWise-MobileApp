@@ -236,6 +236,7 @@ export default function LiveData() {
               <View style={styles.linkCont}>
                 {data ? (
                 <>
+                {/* Speed speedo */}
                 <View style={styles.speedoContainer}>
                   <Text style={styles.speedoTitle}>Speed (Km/h)</Text>
                   <Speedometer value={data.speed} fontFamily="squada-one" max={200} height={180} width={180}>
@@ -248,6 +249,7 @@ export default function LiveData() {
                   </Speedometer>
                 </View>
 
+                {/* RPM speedo */}
                 <View style={styles.speedoContainer}>
                   <Text style={styles.speedoTitle}>RPM</Text>
                   <Speedometer value={data.rpm} fontFamily="squada-one" max={9000} rotation={-90} height={180} width={180}>
@@ -270,33 +272,6 @@ export default function LiveData() {
             {/*Second Page*/}
             <View style={styles.page}>
               <Text style={styles.pageTitle}>Additional Data</Text>
-              
-              <View style={styles.dataGrid}>
-                <View style={styles.dataBox}>
-                  <Text style={styles.dataTitle}>Mass Air Flow</Text>
-                  <Text style={styles.dataValue}>{data.mass_af}</Text>
-                </View>
-                
-                <View style={styles.dataBox}>
-                  <Text style={styles.dataTitle}>Fuel Level</Text>
-                  <Text style={styles.dataValue}>{data.fuel_lvl}%</Text>
-                </View>
-                
-                <View style={styles.dataBox}>
-                  <Text style={styles.dataTitle}>Ambient Temp</Text>
-                  <Text style={styles.dataValue}>{data.ambtemp}°C</Text>
-                </View>
-                
-                <View style={styles.dataBox}>
-                  <Text style={styles.dataTitle}>Barometric Pressure</Text>
-                  <Text style={styles.dataValue}>{data.bar_press} kPa</Text>
-                </View>
-                
-                <View style={styles.dataBox}>
-                  <Text style={styles.dataTitle}>Manifold Pressure</Text>
-                  <Text style={styles.dataValue}>{data.man_press} kPa</Text>
-                </View>
-              </View>
             </View>
           </Animated.View>
         </PanGestureHandler>
@@ -363,34 +338,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
-  },
-  dataGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-  },
-  dataBox: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 15,
-    width: '48%', // Slightly less than 50% to account for margins
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  dataTitle: {
-    fontSize: 14,
-    color: '#555',
-    marginBottom: 5,
-  },
-  dataValue: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
   },
 });
