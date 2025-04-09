@@ -13,6 +13,7 @@ import Speedometer, {
 } from 'react-native-cool-speedometer';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { PanGestureHandler, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { getLocation } from "../utils/locationUtils.js"
 
 //add this back for eas into the package.json
 //remove for local expo go dev work

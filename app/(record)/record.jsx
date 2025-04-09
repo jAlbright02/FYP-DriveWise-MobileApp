@@ -1,6 +1,7 @@
 import { Text, View, StyleSheet, Button } from "react-native";
 import { startRecording, stopRecording } from "../utils/fileHandler.js";
 import { useRecording } from "../context/RecordingContext.js";
+import { getLocation } from "../utils/locationUtils.js"
 
 export default function Record() {
   const { isRecording, setIsRecording } = useRecording();

@@ -1,5 +1,7 @@
 import { Link } from "expo-router";
 import { Text, View, Image, StyleSheet, Dimensions } from "react-native";
+import * as Location from "expo-location";
+import { useEffect } from "react";
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -7,6 +9,13 @@ const imageSize = screenWidth * 0.4;
 
 export default function Index() {
   //https://commons.wikimedia.org/wiki/ for images
+
+  //ask user for location permissions
+  useEffect(() => {
+    (async () => {
+      await Location.requestForegroundPermissionsAsync();
+    })();
+  });
 
   return (
     <View style={styles.container}>
