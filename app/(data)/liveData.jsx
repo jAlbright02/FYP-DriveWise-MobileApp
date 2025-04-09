@@ -16,7 +16,7 @@ import Speedometer, {
 //remove for local expo go dev work
 //"expo-dev-client": "~5.0.12",
 
-
+//init for connecting to ubidots and storing the information
 const host = 'wss://industrial.api.ubidots.com:8084/mqtt';
 const username = 'BBUS-2pKVH91JG2LEz2pPnx1rfGdLATyydA';
 const topicStr = '/v1.6/devices/drivewise/';
@@ -47,6 +47,8 @@ export default function LiveData() {
   const [isConnected, setIsConnected] = useState(false);
   const [client, setClient] = useState(null);
 
+  //want useRef for these values as we want to access them within the component, if useState is used we won't see an updated
+  //value until the component mounts again (no use to us then)
   let logData = useRef({});
   let cnt = useRef({s:0, r:0, eL: 0, eT:0, maf:0, flvl:0, amtem:0, bar:0, man:0});
   const isFirstIteration = useRef(true);
@@ -66,11 +68,15 @@ export default function LiveData() {
 
       mqttClient.on('message', (topic, message) => {
         try {
+          //strip back the string in topic to get the actual topic name we are subscribed to
           const mqttData = JSON.parse(message.toString());
           const topicSplit = topic.split('/');
           const topicName = topicSplit[topicSplit.length-1];
 
           switch (topicName) {
+            //check the case
+            //setData to new value if its changed, if not leave as the same
+            //set the ref for each topic value, increment count to keep track of data received
             case 'speed': 
               setData((prevData) => ({ ...prevData, speed: mqttData.value }));
               logData.current.speed = mqttData.value;
@@ -119,12 +125,13 @@ export default function LiveData() {
             default: console.warn('Unknown variable:', topicName);
           }
 
+          //check we have our first run
           if (isFirstIteration.current) {
             if (Object.values(cnt.current).every(value => value > 0)) {
               console.log("All data received");
               isFirstIteration.current = false;
             }
-          } else {
+          } else { //check that we have incremented the main 3 topics once, push data to csv and reset
             if (cnt.current.s > 0 && cnt.current.r > 0 && cnt.current.eL > 0) {
               console.log("Data ready for CSV:", logData);
               writeCSV(logData.current);
@@ -151,6 +158,7 @@ export default function LiveData() {
   }
 
     return () => {
+      //cleaner handling of connection close
       if (mqttClient) {
         console.log('Cleaning up MQTT connection...');
         mqttClient.unsubscribe(topics, () => {
@@ -183,7 +191,9 @@ export default function LiveData() {
             <Indicator fontSize={20} />
           </Speedometer>
         </View>
+
         <View style={styles.spacing} />
+
         <View style={styles.speedoContainer}>
           <Text style={styles.speedoTitle}>RPM</Text>
           <Speedometer value={data.rpm} fontFamily="squada-one" max={9000} rotation={-90} height={180} width={180}>
@@ -212,26 +222,26 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingTop: 10,
-    backgroundColor: '#DCEAF7', //Colour used in my poster s
+    backgroundColor: '#DCEAF7', //Colour used in my poster
   },
   linkCont: {
-    flexDirection: 'row', // Change to row to align speedometers side by side
+    flexDirection: 'row', //Change to row to align speedometers side by side
     justifyContent: 'center',
     alignItems: 'center',
   },
   spacing: {
     height: 10,
-    width: 20, // Add space between the speedometers
+    width: 20, //Add space between the speedometers
   },
   speedoContainer: {
     alignItems: 'center',
-    marginBottom: 20, // Add space between the speedometers
+    marginBottom: 20,
   },
   speedoTitle: {
     fontFamily: "Roboto",
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 5, // Space between title and speedometer
+    marginBottom: 5,
   },
   headerText: {
     fontFamily: "Roboto",

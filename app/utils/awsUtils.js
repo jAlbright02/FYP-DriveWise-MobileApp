@@ -56,7 +56,7 @@ export async function getLogNames() {
 export async function uploadCsvToS3(fileUri, fileName) {
   try {
     const fileContent = await FileSystem.readAsStringAsync(fileUri, {
-      encoding: FileSystem.EncodingType.UTF8,
+      encoding: FileSystem.EncodingType.UTF8, //read file as UTF-8 string to upload as valid text/csv content to S3
     });
     
     const command = new PutObjectCommand({

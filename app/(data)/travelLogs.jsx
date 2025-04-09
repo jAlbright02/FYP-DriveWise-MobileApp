@@ -34,7 +34,7 @@ export default function TravelLogs() {
     }
   };
 
-  // Function to view the text in a modal
+  //Function to view the text in a modal
   const viewContent = (item) => {
     fetchFile(item);
     setModalVisible(true);
@@ -63,6 +63,8 @@ export default function TravelLogs() {
         contentContainerStyle={styles.listContainer}
       />
 
+      {/*Using a model to avoid moving to another screen and needing to pass data over
+         It's good enough so we can view the content of the files - its only here for the interest of the user*/}
       <Modal
         animationType="slide"
         transparent={true}
