@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet, Dimensions } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import { writeCSV } from "../utils/fileHandler.js";
 import mqtt from 'mqtt';
@@ -11,6 +11,8 @@ import Speedometer, {
   Indicator,
   DangerPath,
 } from 'react-native-cool-speedometer';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { PanGestureHandler, GestureHandlerRootView } from 'react-native-gesture-handler';
 
 //add this back for eas into the package.json
 //remove for local expo go dev work
@@ -46,6 +48,50 @@ export default function LiveData() {
   const [data, setData] = useState(carValues);
   const [isConnected, setIsConnected] = useState(false);
   const [client, setClient] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+
+  //functions for swiping between pages
+  const screenWidth = Dimensions.get('window').width;
+  const translateX = useSharedValue(0);
+
+  const onGestureEvent = (event) => {
+    const { translationX } = event.nativeEvent;
+    translateX.value = -currentPage * screenWidth + translationX;
+  };
+  
+  const onGestureEnd = (event) => {
+    const { translationX, velocityX } = event.nativeEvent;
+    
+    // Calculate if swipe should change page based on distance and velocity
+    const swipeThreshold = screenWidth * 0.3; // 30% of screen width
+    const swipeVelocityThreshold = 500;
+    
+    const shouldSwipeLeft = 
+      (translationX < -swipeThreshold || velocityX < -swipeVelocityThreshold) && 
+      currentPage === 0;
+      
+    const shouldSwipeRight = 
+      (translationX > swipeThreshold || velocityX > swipeVelocityThreshold) && 
+      currentPage === 1;
+  
+    if (shouldSwipeLeft) {
+      setCurrentPage(1);
+      translateX.value = withSpring(-screenWidth);
+    } else if (shouldSwipeRight) {
+      setCurrentPage(0);
+      translateX.value = withSpring(0);
+    } else {
+      // Return to current position
+      translateX.value = withSpring(-currentPage * screenWidth);
+    }
+  };
+  
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }],
+      width: screenWidth * 2, // Total width for both pages
+    };
+  });
 
   //want useRef for these values as we want to access them within the component, if useState is used we won't see an updated
   //value until the component mounts again (no use to us then)
@@ -174,64 +220,114 @@ export default function LiveData() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.headerText}>Status: {isConnected ? 'Connected' : 'Disconnected'}</Text>
-      <View style={styles.spacing} />
-      <View style={styles.linkCont}>
-        {data ? (
-        <>
-        <View style={styles.speedoContainer}>
-          <Text style={styles.speedoTitle}>Speed (Km/h)</Text>
-          <Speedometer value={data.speed} fontFamily="squada-one" max={200} height={180} width={180}>
-            <Background />
-            <Arc />
-            <Needle />
-            <Progress />
-            <Marks fontSize={15} />
-            <Indicator fontSize={20} />
-          </Speedometer>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <View style={styles.container}>
+        <Text style={styles.headerText}>Status: {isConnected ? 'Connected' : 'Disconnected'}</Text>
+
+        <View style={styles.paginationIndicator}>
+          <View style={[styles.dot, currentPage === 0 ? styles.activeDot : null]} />
+          <View style={[styles.dot, currentPage === 1 ? styles.activeDot : null]} />
         </View>
 
-        <View style={styles.spacing} />
+        <PanGestureHandler onGestureEvent={onGestureEvent} onEnded={onGestureEnd}>
+          <Animated.View style={[styles.pagesContainer, animatedStyle]}>
+            {/* First Page */}
+            <View style={styles.page}>
+              <View style={styles.linkCont}>
+                {data ? (
+                <>
+                {/* Speed speedo */}
+                <View style={styles.speedoContainer}>
+                  <Text style={styles.speedoTitle}>Speed (Km/h)</Text>
+                  <Speedometer value={data.speed} fontFamily="squada-one" max={200} height={180} width={180}>
+                    <Background />
+                    <Arc />
+                    <Needle />
+                    <Progress />
+                    <Marks fontSize={15} />
+                    <Indicator fontSize={20} />
+                  </Speedometer>
+                </View>
 
-        <View style={styles.speedoContainer}>
-          <Text style={styles.speedoTitle}>RPM</Text>
-          <Speedometer value={data.rpm} fontFamily="squada-one" max={9000} rotation={-90} height={180} width={180}>
-            <Background />
-            <Arc />
-            <Needle />
-            <DangerPath />
-            <Progress arcWidth={8} />
-            <Marks step={1000} fontSize={15} />
-            <Indicator fontSize={20}/>
-          </Speedometer>
-        </View>
-        </>
-        
-        ) : (
-          <Text>No data received yet...</Text>
-        )}
+                {/* RPM speedo */}
+                <View style={styles.speedoContainer}>
+                  <Text style={styles.speedoTitle}>RPM</Text>
+                  <Speedometer value={data.rpm} fontFamily="squada-one" max={9000} rotation={-90} height={180} width={180}>
+                    <Background />
+                    <Arc />
+                    <Needle />
+                    <DangerPath />
+                    <Progress arcWidth={8} />
+                    <Marks step={1000} fontSize={15} />
+                    <Indicator fontSize={20}/>
+                  </Speedometer>
+                </View>
+                </>
+                ) : (
+                  <Text>No data received yet...</Text>
+                )}
+              </View>
+            </View>
+
+            {/*Second Page*/}
+            <View style={styles.page}>
+              <Text style={styles.pageTitle}>Additional Data</Text>
+            </View>
+          </Animated.View>
+        </PanGestureHandler>
       </View>
-    </View>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+    backgroundColor: '#DCEAF7',
     paddingTop: 10,
-    backgroundColor: '#DCEAF7', //Colour used in my poster
+  },
+  headerText: {
+    fontFamily: "Roboto",
+    fontSize: 20,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  paginationIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ccc',
+    marginHorizontal: 4,
+  },
+  activeDot: {
+    backgroundColor: '#007AFF',
+  },
+  pagesContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    width: Dimensions.get('window').width * 2,
+  },
+  page: {
+    width: Dimensions.get('window').width,
+    paddingHorizontal: 10,
+  },
+  pageTitle: {
+    fontFamily: "Roboto",
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
   },
   linkCont: {
-    flexDirection: 'row', //Change to row to align speedometers side by side
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  spacing: {
-    height: 10,
-    width: 20, //Add space between the speedometers
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'flex-start',
   },
   speedoContainer: {
     alignItems: 'center',
@@ -242,12 +338,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
-  },
-  headerText: {
-    fontFamily: "Roboto",
-    fontSize: 20,
-  },
-  dataText: {
-    fontSize: 18,
   },
 });
