@@ -51,38 +51,45 @@ export default function LiveData() {
   const [currentPage, setCurrentPage] = useState(0);
 
   //functions for swiping between pages
-  const translateX = useSharedValue(-currentPage * screenWidth);
   const screenWidth = Dimensions.get('window').width;
+  const translateX = useSharedValue(0);
 
   const onGestureEvent = (event) => {
     const { translationX } = event.nativeEvent;
-
-    let newPosition = translationX;
-
-    if ((currentPage === 0 && translationX > 0) || (currentPage === 1 && translationX < 0)) {
-      newPosition = translationX/3;
-    }
-
-    translateX.value = -currentPage * screenWidth + newPosition;
+    translateX.value = -currentPage * screenWidth + translationX;
   };
-
+  
   const onGestureEnd = (event) => {
-    const { translationX } = event.nativeEvent;
+    const { translationX, velocityX } = event.nativeEvent;
     
-    if (currentPage === 0 && translationX < -50) {
+    // Calculate if swipe should change page based on distance and velocity
+    const swipeThreshold = screenWidth * 0.3; // 30% of screen width
+    const swipeVelocityThreshold = 500;
+    
+    const shouldSwipeLeft = 
+      (translationX < -swipeThreshold || velocityX < -swipeVelocityThreshold) && 
+      currentPage === 0;
+      
+    const shouldSwipeRight = 
+      (translationX > swipeThreshold || velocityX > swipeVelocityThreshold) && 
+      currentPage === 1;
+  
+    if (shouldSwipeLeft) {
       setCurrentPage(1);
       translateX.value = withSpring(-screenWidth);
-    } else if (currentPage === 1 && translationX > 50) {
+    } else if (shouldSwipeRight) {
       setCurrentPage(0);
       translateX.value = withSpring(0);
     } else {
+      // Return to current position
       translateX.value = withSpring(-currentPage * screenWidth);
     }
   };
-
+  
   const animatedStyle = useAnimatedStyle(() => {
     return {
-      transform: [{translateX: translateX.value}]
+      transform: [{ translateX: translateX.value }],
+      width: screenWidth * 2, // Total width for both pages
     };
   });
 
@@ -216,7 +223,6 @@ export default function LiveData() {
     <GestureHandlerRootView style={{flex: 1}}>
       <View style={styles.container}>
         <Text style={styles.headerText}>Status: {isConnected ? 'Connected' : 'Disconnected'}</Text>
-        <View style={styles.spacing} />
 
         <View style={styles.paginationIndicator}>
           <View style={[styles.dot, currentPage === 0 ? styles.activeDot : null]} />
@@ -241,8 +247,6 @@ export default function LiveData() {
                     <Indicator fontSize={20} />
                   </Speedometer>
                 </View>
-
-                <View style={styles.spacing} />
 
                 <View style={styles.speedoContainer}>
                   <Text style={styles.speedoTitle}>RPM</Text>
@@ -304,26 +308,14 @@ export default function LiveData() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    paddingTop: 10,
     backgroundColor: '#DCEAF7',
-    overflow: 'hidden',
+    paddingTop: 10,
   },
-  pagesContainer: {
-    flexDirection: 'row',
-    width: Dimensions.get('window').width * 2,
-  },
-  page: {
-    width: Dimensions.get('window').width,
-    paddingHorizontal: 10,
-    alignItems: 'center',
-  },
-  pageTitle: {
+  headerText: {
     fontFamily: "Roboto",
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontSize: 20,
+    marginBottom: 10,
+    textAlign: 'center',
   },
   paginationIndicator: {
     flexDirection: 'row',
@@ -340,14 +332,27 @@ const styles = StyleSheet.create({
   activeDot: {
     backgroundColor: '#007AFF',
   },
-  linkCont: {
+  pagesContainer: {
+    flex: 1,
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: Dimensions.get('window').width * 2,
   },
-  spacing: {
-    height: 10,
-    width: 20,
+  page: {
+    width: Dimensions.get('window').width,
+    paddingHorizontal: 10,
+  },
+  pageTitle: {
+    fontFamily: "Roboto",
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  linkCont: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'flex-start',
   },
   speedoContainer: {
     alignItems: 'center',
@@ -359,29 +364,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 5,
   },
-  headerText: {
-    fontFamily: "Roboto",
-    fontSize: 20,
-    marginBottom: 10,
-  },
-  dataRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    marginTop: 10,
-  },
   dataGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-around',
-    width: '100%',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
   },
   dataBox: {
     backgroundColor: 'white',
     borderRadius: 10,
     padding: 15,
-    margin: 10,
-    width: '45%',
+    marginBottom: 15,
+    width: '48%', // Slightly less than 50% to account for margins
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
