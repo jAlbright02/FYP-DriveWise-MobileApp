@@ -14,6 +14,7 @@ import Speedometer, {
 } from 'react-native-cool-speedometer';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { PanGestureHandler, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { FontAwesome } from '@expo/vector-icons';
 
 //add this back for eas into the package.json
 //remove for local expo go dev work
@@ -97,6 +98,7 @@ export default function LiveData() {
   let logData = useRef({});
   let cnt = useRef({s:0, r:0, eL: 0, eT:0, maf:0, flvl:0, amtem:0, bar:0, man:0});
   let speedLim = useRef(0);
+  let prevVals = useRef({maf:0, amtem:0, bar:0, man:0})
   const isFirstIteration = useRef(true);
 
   useEffect(() => {
@@ -150,12 +152,12 @@ export default function LiveData() {
               ++cnt.current.eT;
               break;
             case 'mass_af':
-              setData((prevData) => ({ ...prevData, mass_af: mqttData.value }));
+              setData((prevData) => ({ ...prevData, mass_af: mqttData.value}));
               logData.current.mass_af = mqttData.value;
               ++cnt.current.maf;
               break;
             case 'fuel_lvl':
-              setData((prevData) => ({ ...prevData, fuel_lvl: mqttData.value }));
+              setData((prevData) => ({ ...prevData, fuel_lvl: mqttData.value}));
               logData.current.fuel_lvl = mqttData.value;
               ++cnt.current.flvl;
               break;
@@ -230,6 +232,15 @@ export default function LiveData() {
       clearInterval(speedLimInterval);
     };
   }, []);
+
+  const getChangeIndicator = (newValue, oldValue) => {
+    if (newValue > oldValue) {
+      return <FontAwesome name="arrow-up" size={20} color="green" />;
+    } else if (newValue < oldValue) {
+      return <FontAwesome name="arrow-down" size={20} color="red" />;
+    }
+    return <Text>-</Text>;
+  };
 
   return (
     <GestureHandlerRootView style={{flex: 1}}>
@@ -325,6 +336,41 @@ export default function LiveData() {
             {/*Second Page*/}
             <View style={styles.page}>
               <Text style={styles.pageTitle}>Additional Data</Text>
+              {/* Manifold Pressure */}
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Manifold Pressure (hPa)</Text>
+                <Text style={styles.cardValue}>{data.man_press} hPa</Text>
+                <View style={styles.indicator}>
+                  {getChangeIndicator(data.man_press, 1)}
+                </View>
+              </View>
+
+              {/* Barometric Pressure */}
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Barometric Pressure (hPa)</Text>
+                <Text style={styles.cardValue}>{data.bar_press} hPa</Text>
+                <View style={styles.indicator}>
+                  {getChangeIndicator(data.bar_press, 1)}
+                </View>
+              </View>
+
+              {/* Ambient Temperature */}
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Ambient Temperature (°C)</Text>
+                <Text style={styles.cardValue}>{data.ambtemp} °C</Text>
+                <View style={styles.indicator}>
+                  {getChangeIndicator(data.ambtemp, 1)}
+                </View>
+              </View>
+
+              {/* Mass Airflow */}
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Mass Airflow (g/s)</Text>
+                <Text style={styles.cardValue}>{data.mass_af} g/s</Text>
+                <View style={styles.indicator}>
+                  {getChangeIndicator(data.mass_af, 1)}
+                </View>
+              </View>
             </View>
           </Animated.View>
         </PanGestureHandler>
@@ -390,5 +436,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 15,
+    marginVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  cardTitle: {
+    fontFamily: "Roboto",
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  cardValue: {
+    fontFamily: "Roboto",
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  indicator: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
