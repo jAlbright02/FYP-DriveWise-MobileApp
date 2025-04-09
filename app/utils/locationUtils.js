@@ -1,6 +1,6 @@
 import * as Location from "expo-location";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyAz5ONMenEJ7FFRQdCIuOVY_1xYC__br4k";
+const GOOGLE_MAPS_API_KEY = "asc";
 
 //pass data from here to liveData
 let speedLimit = 0;
