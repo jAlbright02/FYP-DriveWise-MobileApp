@@ -1,6 +1,7 @@
 import { Text, View, StyleSheet, Dimensions } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import { writeCSV } from "../utils/fileHandler.js";
+import { getLocation } from "../utils/locationUtils.js";
 import mqtt from 'mqtt';
 import Speedometer, {
   Background,
@@ -13,7 +14,6 @@ import Speedometer, {
 } from 'react-native-cool-speedometer';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { PanGestureHandler, GestureHandlerRootView } from 'react-native-gesture-handler';
-import { getLocation } from "../utils/locationUtils.js"
 
 //add this back for eas into the package.json
 //remove for local expo go dev work
@@ -96,12 +96,19 @@ export default function LiveData() {
   //value until the component mounts again (no use to us then)
   let logData = useRef({});
   let cnt = useRef({s:0, r:0, eL: 0, eT:0, maf:0, flvl:0, amtem:0, bar:0, man:0});
+  let speedLim = useRef(0);
   const isFirstIteration = useRef(true);
 
   useEffect(() => {
+    const getSpeedOnInit = async () => {
+      const limit = await getLocation();
+      speedLim.current = limit;
+      console.log("Initial speed limit fetched:", limit);
+    };
+    getSpeedOnInit();
+
     let mqttClient = null;
     if (!client) {
-
       mqttClient = mqtt.connect(host, options);
       setClient(mqttClient);
 
@@ -179,7 +186,7 @@ export default function LiveData() {
           } else { //check that we have incremented the main 3 topics once, push data to csv and reset
             if (cnt.current.s > 0 && cnt.current.r > 0 && cnt.current.eL > 0) {
               console.log("Data ready for CSV:", logData);
-              writeCSV(logData.current);
+              writeCSV(logData.current, speedLim.current);
               cnt.current.s = 0;
               cnt.current.r = 0;
               cnt.current.eL = 0;
@@ -202,6 +209,11 @@ export default function LiveData() {
       });
   }
 
+  const speedLimInterval = setInterval(async () => {
+    console.log('Getting speed limit');
+    speedLim.current = await getLocation();
+  }, 180000);
+
     return () => {
       //cleaner handling of connection close
       if (mqttClient) {
@@ -215,6 +227,7 @@ export default function LiveData() {
           });
         });
       }
+      clearInterval(speedLimInterval);
     };
   }, []);
 
