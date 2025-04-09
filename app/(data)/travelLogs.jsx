@@ -46,7 +46,7 @@ export default function TravelLogs() {
         data={logNames}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
-          <Pressable style={styles.itemContainer}>
+          <View style={styles.itemContainer}>
             <View style={styles.itemContent}>
               <Text style={styles.itemText}>{typeof item === 'string' ? item : JSON.stringify(item)}</Text>
               <View style={styles.iconContainer}>
@@ -58,7 +58,7 @@ export default function TravelLogs() {
                 </Pressable>
               </View>
             </View>
-          </Pressable>
+          </View>
         )}
         contentContainerStyle={styles.listContainer}
       />
