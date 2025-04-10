@@ -156,7 +156,7 @@ export default function LiveData() {
               break;
             case 'mass_af':
               setData((prevData) => {
-                prevVals.current.maf = prevData; 
+                prevVals.current.maf = prevData.mass_af; 
                 return {
                   ...prevData, mass_af: mqttData.value
                 }
@@ -171,7 +171,7 @@ export default function LiveData() {
               break;
             case 'ambtemp':
               setData((prevData) => {
-                prevVals.current.amtem = prevData; 
+                prevVals.current.amtem = prevData.ambtemp; 
                 return {
                   ...prevData, ambtemp: mqttData.value
                 }
@@ -181,7 +181,7 @@ export default function LiveData() {
               break;
             case 'bar_press':
               setData((prevData) => {
-                prevVals.current.bar = prevData; 
+                prevVals.current.bar = prevData.bar_press; 
                 return {
                   ...prevData, bar_press: mqttData.value
                 }
@@ -191,7 +191,7 @@ export default function LiveData() {
               break;
             case 'man_press':
               setData((prevData) => {
-                prevVals.current.man = prevData; 
+                prevVals.current.man = prevData.man_press; 
                 return {
                   ...prevData, man_press: mqttData.value
                 }

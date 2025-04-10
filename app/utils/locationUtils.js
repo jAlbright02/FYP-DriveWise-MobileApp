@@ -26,7 +26,7 @@ export const getLocation = async () => {
             accuracy: Location.Accuracy.High
         });
         console.log(`Location obtained: ${location.coords.latitude}, ${location.coords.longitude}`);
-        getSpeedLimit(location.coords);
+        return await getSpeedLimit(location.coords);
     } catch (error) {
         console.error("Error getting location:", error);
         return speedLimit = 120;
