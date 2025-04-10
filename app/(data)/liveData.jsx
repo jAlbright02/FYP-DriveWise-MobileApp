@@ -54,18 +54,21 @@ export default function LiveData() {
 
   //functions for swiping between pages
   const screenWidth = Dimensions.get('window').width;
-  const translateX = useSharedValue(0);
+  const translateX = useSharedValue(0); //track the X translation of the component
 
+  //tracks swipe movements
+  //updates translateX based on the gesture's X movement
   const onGestureEvent = (event) => {
     const { translationX } = event.nativeEvent;
     translateX.value = -currentPage * screenWidth + translationX;
   };
   
+  //checks if the user swiped far enough (& with enough speed) to trigger a change
   const onGestureEnd = (event) => {
     const { translationX, velocityX } = event.nativeEvent;
     
     const swipeThreshold = screenWidth * 0.3;
-    const swipeVelocityThreshold = 500;
+    const swipeVelocityThreshold = 500; //speed of swipe
     
     const shouldSwipeLeft = 
       (translationX < -swipeThreshold || velocityX < -swipeVelocityThreshold) && 
@@ -179,13 +182,13 @@ export default function LiveData() {
             default: console.warn('Unknown variable:', topicName);
           }
 
-          //check we have our first run
+          //do we have our first run?
           if (isFirstIteration.current) {
-            if (Object.values(cnt.current).every(value => value > 0)) {
+            if (Object.values(cnt.current).every(value => value > 0)) { //has each count var incremented once?
               console.log("All data received");
               isFirstIteration.current = false;
             }
-          } else { //check that we have incremented the main 3 topics once, push data to csv and reset
+          } else { //have we incremented the main 3 topics once? if so, push data to csv and reset
             if (cnt.current.s > 0 && cnt.current.r > 0 && cnt.current.eL > 0) {
               console.log("Data ready for CSV:", logData);
               writeCSV(logData.current, speedLim.current);
@@ -214,7 +217,7 @@ export default function LiveData() {
   const speedLimInterval = setInterval(async () => {
     console.log('Getting speed limit');
     speedLim.current = await getLocation();
-  }, 180000);
+  }, 180000); //3min interval
 
     return () => {
       //cleaner handling of connection close
@@ -233,7 +236,7 @@ export default function LiveData() {
     };
   }, []);
 
-  const getChangeIndicator = (newValue, oldValue) => {
+  const getChangeIndicator = (newValue, oldValue) => { //show if the value has changed up/down/not changed
     if (newValue > oldValue) {
       return <FontAwesome name="arrow-up" size={20} color="green" />;
     } else if (newValue < oldValue) {
