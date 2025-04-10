@@ -14,6 +14,7 @@ import Speedometer, {
 } from 'react-native-cool-speedometer';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { PanGestureHandler, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { FontAwesome } from '@expo/vector-icons';
 
 //add this back for eas into the package.json
 //remove for local expo go dev work
@@ -53,18 +54,21 @@ export default function LiveData() {
 
   //functions for swiping between pages
   const screenWidth = Dimensions.get('window').width;
-  const translateX = useSharedValue(0);
+  const translateX = useSharedValue(0); //track the X translation of the component
 
+  //tracks swipe movements
+  //updates translateX based on the gesture's X movement
   const onGestureEvent = (event) => {
     const { translationX } = event.nativeEvent;
     translateX.value = -currentPage * screenWidth + translationX;
   };
   
+  //checks if the user swiped far enough (& with enough speed) to trigger a change
   const onGestureEnd = (event) => {
     const { translationX, velocityX } = event.nativeEvent;
     
     const swipeThreshold = screenWidth * 0.3;
-    const swipeVelocityThreshold = 500;
+    const swipeVelocityThreshold = 500; //speed of swipe
     
     const shouldSwipeLeft = 
       (translationX < -swipeThreshold || velocityX < -swipeVelocityThreshold) && 
@@ -97,6 +101,7 @@ export default function LiveData() {
   let logData = useRef({});
   let cnt = useRef({s:0, r:0, eL: 0, eT:0, maf:0, flvl:0, amtem:0, bar:0, man:0});
   let speedLim = useRef(0);
+  let prevVals = useRef({maf:0, amtem:0, bar:0, man:0})
   const isFirstIteration = useRef(true);
 
   useEffect(() => {
@@ -150,40 +155,60 @@ export default function LiveData() {
               ++cnt.current.eT;
               break;
             case 'mass_af':
-              setData((prevData) => ({ ...prevData, mass_af: mqttData.value }));
+              setData((prevData) => {
+                prevVals.current.maf = prevData; 
+                return {
+                  ...prevData, mass_af: mqttData.value
+                }
+              });
               logData.current.mass_af = mqttData.value;
               ++cnt.current.maf;
               break;
             case 'fuel_lvl':
-              setData((prevData) => ({ ...prevData, fuel_lvl: mqttData.value }));
+              setData((prevData) => ({ ...prevData, fuel_lvl: mqttData.value}));
               logData.current.fuel_lvl = mqttData.value;
               ++cnt.current.flvl;
               break;
             case 'ambtemp':
-              setData((prevData) => ({ ...prevData, ambtemp: mqttData.value }));
+              setData((prevData) => {
+                prevVals.current.amtem = prevData; 
+                return {
+                  ...prevData, ambtemp: mqttData.value
+                }
+              });
               logData.current.ambtemp = mqttData.value;
               ++cnt.current.amtem;
               break;
             case 'bar_press':
-              setData((prevData) => ({ ...prevData, bar_press: mqttData.value }));
+              setData((prevData) => {
+                prevVals.current.bar = prevData; 
+                return {
+                  ...prevData, bar_press: mqttData.value
+                }
+              });
               logData.current.bar_press = mqttData.value;
               ++cnt.current.bar;
               break;
             case 'man_press':
-              setData((prevData) => ({ ...prevData, man_press: mqttData.value }));
+              setData((prevData) => {
+                prevVals.current.man = prevData; 
+                return {
+                  ...prevData, man_press: mqttData.value
+                }
+              });
               logData.current.man_press = mqttData.value;
               ++cnt.current.man;
               break;
             default: console.warn('Unknown variable:', topicName);
           }
 
-          //check we have our first run
+          //do we have our first run?
           if (isFirstIteration.current) {
-            if (Object.values(cnt.current).every(value => value > 0)) {
+            if (Object.values(cnt.current).every(value => value > 0)) { //has each count var incremented once?
               console.log("All data received");
               isFirstIteration.current = false;
             }
-          } else { //check that we have incremented the main 3 topics once, push data to csv and reset
+          } else { //have we incremented the main 3 topics once? if so, push data to csv and reset
             if (cnt.current.s > 0 && cnt.current.r > 0 && cnt.current.eL > 0) {
               console.log("Data ready for CSV:", logData);
               writeCSV(logData.current, speedLim.current);
@@ -212,7 +237,7 @@ export default function LiveData() {
   const speedLimInterval = setInterval(async () => {
     console.log('Getting speed limit');
     speedLim.current = await getLocation();
-  }, 180000);
+  }, 180000); //3min interval
 
     return () => {
       //cleaner handling of connection close
@@ -230,6 +255,15 @@ export default function LiveData() {
       clearInterval(speedLimInterval);
     };
   }, []);
+
+  const getChangeIndicator = (newValue, oldValue) => { //show if the value has changed up/down/not changed
+    if (newValue > oldValue) {
+      return <FontAwesome name="arrow-up" size={20} color="green" />;
+    } else if (newValue < oldValue) {
+      return <FontAwesome name="arrow-down" size={20} color="red" />;
+    }
+    return <Text>-</Text>;
+  };
 
   return (
     <GestureHandlerRootView style={{flex: 1}}>
@@ -325,6 +359,41 @@ export default function LiveData() {
             {/*Second Page*/}
             <View style={styles.page}>
               <Text style={styles.pageTitle}>Additional Data</Text>
+              {/* Manifold Pressure */}
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Manifold Pressure (hPa)</Text>
+                <Text style={styles.cardValue}>{data.man_press} hPa</Text>
+                <View style={styles.indicator}>
+                  {getChangeIndicator(data.man_press, prevVals.current.man)}
+                </View>
+              </View>
+
+              {/* Barometric Pressure */}
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Barometric Pressure (hPa)</Text>
+                <Text style={styles.cardValue}>{data.bar_press} hPa</Text>
+                <View style={styles.indicator}>
+                  {getChangeIndicator(data.bar_press, prevVals.current.bar)}
+                </View>
+              </View>
+
+              {/* Ambient Temperature */}
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Ambient Temperature (°C)</Text>
+                <Text style={styles.cardValue}>{data.ambtemp} °C</Text>
+                <View style={styles.indicator}>
+                  {getChangeIndicator(data.ambtemp, prevVals.current.amtem)}
+                </View>
+              </View>
+
+              {/* Mass Airflow */}
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Mass Airflow (g/s)</Text>
+                <Text style={styles.cardValue}>{data.mass_af} g/s</Text>
+                <View style={styles.indicator}>
+                  {getChangeIndicator(data.mass_af, prevVals.current.maf)}
+                </View>
+              </View>
             </View>
           </Animated.View>
         </PanGestureHandler>
@@ -390,5 +459,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 15,
+    marginVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  cardTitle: {
+    fontFamily: "Roboto",
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  cardValue: {
+    fontFamily: "Roboto",
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  indicator: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
