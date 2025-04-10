@@ -3,6 +3,8 @@ import { parseTextFile, getLogNames } from "../utils/awsUtils";
 import React, { useState, useEffect } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
+const awsURL = 'https://4aaa-193-1-57-1.ngrok-free.app'
+
 export default function TravelLogs() {
   const [fileContent, setFileContent] = useState(null);
   const [logNames, setLogNames] = useState([]);
@@ -40,6 +42,34 @@ export default function TravelLogs() {
     setModalVisible(true);
   };
 
+  //call server to score a drivers report
+  const scoreFile = async (file) => {
+    fetchFile(file); 
+    try {
+      const res = await fetch(
+        `${awsURL}/processFile`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            "ngrok-skip-browser-warning": "69420"
+          },
+          body: JSON.stringify({
+            processContent: fileContent,
+          }),
+        }
+      );
+      const data = await res.json();
+      if (data.success) {
+        console.log('Success');
+      } else {
+        console.log('Error');
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }; 
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -53,7 +83,7 @@ export default function TravelLogs() {
                 <Pressable onPress={() => viewContent(item)}>
                   <Icon name="eye" size={20} color="#ffffff" />
                 </Pressable>
-                <Pressable style={styles.iconSpacing}>
+                <Pressable style={styles.iconSpacing} onPress={() => scoreFile(item)}>
                   <Icon name="bar-chart" size={20} color="#ffffff" />
                 </Pressable>
               </View>
