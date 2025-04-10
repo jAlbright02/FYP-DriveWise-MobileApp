@@ -63,10 +63,10 @@ export default function TravelLogs() {
       if (data.success) {
         console.log('Success');
       } else {
-        console.log('Error');
+        console.log('Error: Unexpected response');
       }
     } catch (err) {
-      console.log(err);
+      console.log('Error trying to fetch', err);
     }
   }; 
 
