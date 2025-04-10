@@ -155,7 +155,12 @@ export default function LiveData() {
               ++cnt.current.eT;
               break;
             case 'mass_af':
-              setData((prevData) => ({ ...prevData, mass_af: mqttData.value}));
+              setData((prevData) => {
+                prevVals.current.maf = prevData; 
+                return {
+                  ...prevData, mass_af: mqttData.value
+                }
+              });
               logData.current.mass_af = mqttData.value;
               ++cnt.current.maf;
               break;
@@ -165,17 +170,32 @@ export default function LiveData() {
               ++cnt.current.flvl;
               break;
             case 'ambtemp':
-              setData((prevData) => ({ ...prevData, ambtemp: mqttData.value }));
+              setData((prevData) => {
+                prevVals.current.amtem = prevData; 
+                return {
+                  ...prevData, ambtemp: mqttData.value
+                }
+              });
               logData.current.ambtemp = mqttData.value;
               ++cnt.current.amtem;
               break;
             case 'bar_press':
-              setData((prevData) => ({ ...prevData, bar_press: mqttData.value }));
+              setData((prevData) => {
+                prevVals.current.bar = prevData; 
+                return {
+                  ...prevData, bar_press: mqttData.value
+                }
+              });
               logData.current.bar_press = mqttData.value;
               ++cnt.current.bar;
               break;
             case 'man_press':
-              setData((prevData) => ({ ...prevData, man_press: mqttData.value }));
+              setData((prevData) => {
+                prevVals.current.man = prevData; 
+                return {
+                  ...prevData, man_press: mqttData.value
+                }
+              });
               logData.current.man_press = mqttData.value;
               ++cnt.current.man;
               break;
@@ -344,7 +364,7 @@ export default function LiveData() {
                 <Text style={styles.cardTitle}>Manifold Pressure (hPa)</Text>
                 <Text style={styles.cardValue}>{data.man_press} hPa</Text>
                 <View style={styles.indicator}>
-                  {getChangeIndicator(data.man_press, 1)}
+                  {getChangeIndicator(data.man_press, prevVals.current.man)}
                 </View>
               </View>
 
@@ -353,7 +373,7 @@ export default function LiveData() {
                 <Text style={styles.cardTitle}>Barometric Pressure (hPa)</Text>
                 <Text style={styles.cardValue}>{data.bar_press} hPa</Text>
                 <View style={styles.indicator}>
-                  {getChangeIndicator(data.bar_press, 1)}
+                  {getChangeIndicator(data.bar_press, prevVals.current.bar)}
                 </View>
               </View>
 
@@ -362,7 +382,7 @@ export default function LiveData() {
                 <Text style={styles.cardTitle}>Ambient Temperature (°C)</Text>
                 <Text style={styles.cardValue}>{data.ambtemp} °C</Text>
                 <View style={styles.indicator}>
-                  {getChangeIndicator(data.ambtemp, 1)}
+                  {getChangeIndicator(data.ambtemp, prevVals.current.amtem)}
                 </View>
               </View>
 
@@ -371,7 +391,7 @@ export default function LiveData() {
                 <Text style={styles.cardTitle}>Mass Airflow (g/s)</Text>
                 <Text style={styles.cardValue}>{data.mass_af} g/s</Text>
                 <View style={styles.indicator}>
-                  {getChangeIndicator(data.mass_af, 1)}
+                  {getChangeIndicator(data.mass_af, prevVals.current.maf)}
                 </View>
               </View>
             </View>
