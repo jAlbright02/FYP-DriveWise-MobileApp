@@ -62,6 +62,7 @@ export default function TravelLogs() {
       const data = await res.json();
       if (data.success) {
         console.log('Success');
+        console.log('Driver Score: ', data.score);
       } else {
         console.log('Error: Unexpected response');
       }
