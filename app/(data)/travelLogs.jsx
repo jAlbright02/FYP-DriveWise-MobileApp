@@ -1,9 +1,9 @@
-import { Text, View, StyleSheet, FlatList, Pressable, Modal, ScrollView, Dimensions } from "react-native";
+import { Text, View, StyleSheet, FlatList, Pressable, Modal, ScrollView, Dimensions, Alert } from "react-native";
 import { parseTextFile, getLogNames } from "../utils/awsUtils";
 import React, { useState, useEffect } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const awsURL = 'https://4aaa-193-1-57-1.ngrok-free.app'
+const awsURL = 'https://56b3-2a0d-3344-846-1910-d13a-a8c8-fc7c-f2c5.ngrok-free.app'
 
 export default function TravelLogs() {
   const [fileContent, setFileContent] = useState(null);
@@ -30,6 +30,7 @@ export default function TravelLogs() {
       const fileWithExtension = fileName + '.csv'; //Append '.csv' extension to the file name
       const content = await parseTextFile(fileWithExtension);
       setFileContent(content);
+      return content;
     } catch (err) {
       console.error('Failed to fetch file: ', err);
       setFileContent('Failed to load file');
@@ -44,8 +45,14 @@ export default function TravelLogs() {
 
   //call server to score a drivers report
   const scoreFile = async (file) => {
-    fetchFile(file); 
     try {
+      const content = await fetchFile(file);
+      
+      if (!content || content.length === 0) {
+        console.log("Error: File content is empty");
+        return;
+      }
+      
       const res = await fetch(
         `${awsURL}/processFile`,
         {
@@ -55,21 +62,30 @@ export default function TravelLogs() {
             "ngrok-skip-browser-warning": "69420"
           },
           body: JSON.stringify({
-            processContent: fileContent,
+            processContent: content
           }),
+          timeout: 5000
         }
       );
+      
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      
       const data = await res.json();
       if (data.success) {
-        console.log('Success');
         console.log('Driver Score:', data.score);
+        Alert.alert(
+          'Driving Score', 
+          `Your driving score is: ${data.score}`,
+          [{ text: 'OK' }]
+        );
       } else {
-        console.log('Error: Unexpected response');
+        console.log('Error from server:', data.message);
       }
     } catch (err) {
-      console.log('Error trying to fetch', err);
+      console.log('Error processing score:', err.message);
+      Alert.alert('Error', 'Failed to calculate score');
     }
-  }; 
+  };
 
   return (
     <View style={styles.container}>
