@@ -3,7 +3,7 @@ import { parseTextFile, getLogNames } from "../utils/awsUtils";
 import React, { useState, useEffect } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const awsURL = 'https://56b3-2a0d-3344-846-1910-d13a-a8c8-fc7c-f2c5.ngrok-free.app'
+const awsURL = 'http://44.218.190.116:3010' //needs to be changed, its currently elasticIP but that can incur charges
 
 export default function TravelLogs() {
   const [fileContent, setFileContent] = useState(null);
