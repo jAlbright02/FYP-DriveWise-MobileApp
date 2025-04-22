@@ -22,7 +22,7 @@ import { FontAwesome } from '@expo/vector-icons';
 
 //init for connecting to ubidots and storing the information
 const host = 'wss://industrial.api.ubidots.com:8084/mqtt';
-const username = 'BBUS-2pKVH91JG2LEz2pPnx1rfGdLATyydA';
+const username = 'BBUS-5lqxaVyinQif5vMxy3Q4jXIwTcoN1t';
 const topicStr = '/v1.6/devices/drivewise/';
 const topics = [topicStr + 'speed', topicStr + 'rpm', topicStr + 'engload', topicStr + 'engcooltemp',
                 topicStr + 'mass_af', topicStr + 'fuel_lvl', topicStr + 'ambtemp', topicStr + 'man_press', topicStr + 'bar_press'];   
