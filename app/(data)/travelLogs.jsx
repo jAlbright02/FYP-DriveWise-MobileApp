@@ -3,7 +3,7 @@ import { parseTextFile, getLogNames } from "../utils/awsUtils";
 import React, { useState, useEffect } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const awsURL = 'http://44.218.190.116:3010' //needs to be changed, its currently elasticIP but that can incur charges
+const awsURL = 'http://44.201.100.202:3010'
 
 export default function TravelLogs() {
   const [fileContent, setFileContent] = useState(null);
@@ -73,9 +73,10 @@ export default function TravelLogs() {
       const data = await res.json();
       if (data.success) {
         console.log('Driver Score:', data.score);
+        console.log('Feedback:', data.message);
         Alert.alert(
           'Driving Score', 
-          `Your driving score is: ${data.score}`,
+          `Your driving score is: ${data.score}\n\n< Feedback >\nSpeed:\n${data.message[0]}\n\nRPM:\n${data.message[1]}\n\nEngine Load:\n${data.message[2]}\n\nClean Driving:\n${data.message[3]}`,
           [{ text: 'OK' }]
         );
       } else {
