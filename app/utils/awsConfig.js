@@ -1,8 +1,8 @@
-import { AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_BUCKET } from '@env';
+import Constants from 'expo-constants';
 
 export const awsConfig = {
-  region: AWS_REGION,
-  accessKeyId: AWS_ACCESS_KEY_ID,
-  secretAccessKey: AWS_SECRET_ACCESS_KEY,
-  bucket: AWS_BUCKET,
+  region: Constants.expoConfig.extra.AWS_REGION,
+  accessKeyId: Constants.expoConfig.extra.AWS_ACCESS_KEY_ID,
+  secretAccessKey: Constants.expoConfig.extra.AWS_SECRET_ACCESS_KEY,
+  bucket: Constants.expoConfig.extra.AWS_BUCKET,
 };

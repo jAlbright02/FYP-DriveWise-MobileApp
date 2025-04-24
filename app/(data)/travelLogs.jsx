@@ -3,7 +3,7 @@ import { parseTextFile, getLogNames } from "../utils/awsUtils";
 import React, { useState, useEffect } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const awsURL = 'http://44.201.100.202:3010'
+const awsURL = 'https://jamesalbright.website:3010'
 
 export default function TravelLogs() {
   const [fileContent, setFileContent] = useState(null);
@@ -64,7 +64,7 @@ export default function TravelLogs() {
           body: JSON.stringify({
             processContent: content
           }),
-          timeout: 5000
+          timeout: 15000
         }
       );
       
