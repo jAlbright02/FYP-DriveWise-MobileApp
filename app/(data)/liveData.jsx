@@ -16,10 +16,6 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-na
 import { PanGestureHandler, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { FontAwesome } from '@expo/vector-icons';
 
-//add this back for eas into the package.json
-//remove for local expo go dev work
-//"expo-dev-client": "~5.0.12",
-
 //init for connecting to ubidots and storing the information
 const host = 'wss://industrial.api.ubidots.com:8084/mqtt';
 const username = 'BBUS-IkMP5UXfhDB2i4Sa7JEEOWS3Z3XYnk';
